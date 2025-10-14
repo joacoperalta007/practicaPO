@@ -44,7 +44,7 @@ export default function Login() {
     async function login() {
         let data = {
             user: user,
-            contraseña: contraseña
+            contraseña: contraseña,
         };
 
         fetch('http://localhost:4000/login', {
