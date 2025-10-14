@@ -49,7 +49,7 @@ app.post('/login', async function login(req, res) {
         return res.send({ res: false, message: "Los campos no pueden estar vacíos." });
     } else {
         const comprobar = await realizarQuery(
-            `SELECT * FROM Jugadores WHERE usuario = ${req.body.user} AND contraseña = '${req.body.contraseña}'`
+            `SELECT * FROM Jugadores WHERE usuario = '${req.body.user}' AND contraseña = ${req.body.contraseña}`
         );
         console.log(comprobar)
         if (comprobar.length > 0) {
