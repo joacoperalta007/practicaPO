@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Button from "@/components/Boton";
 import Input from "@/components/Input";
-import styles from "./page.module.css"
+import styles from "@/app/login/page.module.css"
+import { useRouter } from "next/navigation";
 
 export default function Login() {
     const [contraseña, setContraseña] = useState("");
@@ -11,6 +12,7 @@ export default function Login() {
     const [user, setUser] = useState("");
     const [mostrar, setMostrar] = useState("false");
     const [mail, setMail] = useState("false");
+    const router = useRouter();
 
     function guardarContraseña(event) {
         setContraseña(event.target.value);
@@ -60,7 +62,8 @@ export default function Login() {
                     console.log(response)
                     //popup no alert
                     alert("Ingresaste con exito");
-                    router.push("/home?idLogged=${response.idLogged}&user=${response.user}");
+                    let url = "/home?idLogged=" + response.idLogged + "&user=" + user
+                    router.push(url);
                 } else {
                     //popup no alert
                     alert("Número de teléfono o contraseña incorrectos");
