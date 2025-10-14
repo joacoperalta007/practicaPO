@@ -43,6 +43,7 @@ io.use((socket, next) => {
     sessionMiddleware(socket.request, {}, next);
 });
 
+//funciona
 app.post('/login', async function login(req, res) {
     console.log(req.body)
     if (!req.body.user || !req.body.contraseña) {
