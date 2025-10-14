@@ -49,7 +49,7 @@ app.post('/login', async function login(req, res) {
         return res.send({ res: false, message: "Los campos no pueden estar vacíos." });
     } else {
         const comprobar = await realizarQuery(
-            `SELECT * FROM Jugadores WHERE usuario = '${req.body.user}' AND contraseña = ${req.body.contraseña}`
+            `SELECT * FROM Jugadores WHERE usuario = '${req.body.user}' AND contraseña = '${req.body.contraseña}'`
         );
         console.log(comprobar)
         if (comprobar.length > 0) {
@@ -63,18 +63,17 @@ app.post('/login', async function login(req, res) {
 app.post('/register', async function (req, res) {
     console.log(req.body);
     const comprobar = await realizarQuery(
-        `SELECT * FROM Jugadores WHERE usuario = ${req.body.usuario}`
+        `SELECT * FROM Jugadores WHERE usuario = '${req.body.user}'`
     );
 
     if (comprobar.length == 0) {
         const respuesta = await realizarQuery(`INSERT INTO Jugadores (contraseña, email, nombre, usuario)
-        VALUES ('${req.body.contraseña}', '${req.body.email}', ${req.body.nombre}, '${req.body.usuario}')`)
+        VALUES ('${req.body.contraseña}', '${req.body.email}', '${req.body.nombre}', '${req.body.user}')`)
         res.send({ res: true, idLogged: respuesta.insertId })
     } else {
         res.send({ res: false })
     }
 })
-
 
 // ============= SOCKET.IO - CORREGIDO =============
 io.on("connection", (socket) => {
