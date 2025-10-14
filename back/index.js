@@ -45,14 +45,34 @@ io.use((socket, next) => {
 
 app.post('/login', async function login(req, res) {
     console.log(req.body)
-    const comprobar = realizarQuery('SELECT contraseña FROM Jugadores WHERE usuario = ${req.body.user}')
-    if (comprobar == req.body.pass){
-        res.send()
+   if (!req.body.user || !req.body.contraseña) {
+        return res.send({ res: false, message: "Los campos no pueden estar vacíos." });
+    } else {
+        const comprobar = await realizarQuery(
+            `SELECT * FROM Jugadores WHERE usuario = ${req.body.usuario} AND contraseña = '${req.body.contraseña}'`
+        );
+        console.log(comprobar)
+        if (comprobar.length > 0) {
+            res.send({ res: true, idLogged: comprobar[0].id_jugador, user: comprobar[0].usuario});
+        } else {
+            res.send({ res: false });
+        }
     }
 });
 
 app.post('/register', async function (req, res) {
-    
+    console.log(req.body);
+    const comprobar = await realizarQuery(
+        `SELECT * FROM Jugadores WHERE usuario = ${req.body.usuario}`
+    );
+
+    if (comprobar.length == 0) {
+        const respuesta = await realizarQuery(`INSERT INTO Jugadores (contraseña, email, nombre, usuario)
+        VALUES ('${req.body.contraseña}', '${req.body.email}', ${req.body.nombre}, '${req.body.usuario}')`)
+        res.send({ res: true, idLogged: respuesta.insertId })
+    } else {
+        res.send({ res: false })
+    }
 })
 
 

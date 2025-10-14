@@ -31,7 +31,7 @@ export default function Login() {
     function guardarUser2(event) {
         setUser(event.target.value);
     }
-    
+
     function guardarMail(event) {
         setMail(event.target.value);
     }
@@ -40,11 +40,33 @@ export default function Login() {
         setMail(event.target.value);
     }
 
+    //hay que hacer un componente popup para que quede mejor que el alert que queda re croto
     async function login() {
         let data = {
-            numero_telefono: numero,
+            user: user,
             contraseña: contraseña
         };
+
+        fetch('http://localhost:4000/login', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(response => {
+                if (response.res) {
+                    console.log(response)
+                    //popup no alert
+                    alert("Ingresaste con exito");
+                    router.push("/home?idLogged=${response.idLogged}&user=${response.user}");
+                } else {
+                    //popup no alert
+                    alert("Número de teléfono o contraseña incorrectos");
+
+                }
+            })
 
     }
     async function register() {
@@ -52,14 +74,32 @@ export default function Login() {
             nombre: nombre,
             contraseña: contraseña,
             email: mail,
-            usuario: user
+            user: user
         };
 
+        fetch('http://localhost:4000/register', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(response => {
+                if (response.res) {
+                    //popup no alert
+                    alert("Cuenta creada con exito");
+                    router.push("/home?idLogged=${response.idLogged}&user=${user}");
+                } else {
+                    //popup no alert
+                    alert("El usuario ya existe");
+                }
+            })
     }
 
 
-    function irRegister () {
-       setMostrar(!mostrar)
+    function irRegister() {
+        setMostrar(!mostrar)
     }
 
     return (
