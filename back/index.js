@@ -45,15 +45,15 @@ io.use((socket, next) => {
 
 app.post('/login', async function login(req, res) {
     console.log(req.body)
-   if (!req.body.user || !req.body.contraseña) {
+    if (!req.body.user || !req.body.contraseña) {
         return res.send({ res: false, message: "Los campos no pueden estar vacíos." });
     } else {
         const comprobar = await realizarQuery(
-            `SELECT * FROM Jugadores WHERE usuario = ${req.body.usuario} AND contraseña = '${req.body.contraseña}'`
+            `SELECT * FROM Jugadores WHERE usuario = ${req.body.user} AND contraseña = '${req.body.contraseña}'`
         );
         console.log(comprobar)
         if (comprobar.length > 0) {
-            res.send({ res: true, idLogged: comprobar[0].id_jugador, user: comprobar[0].usuario});
+            res.send({ res: true, idLogged: comprobar[0].id_jugador, user: comprobar[0].usuario });
         } else {
             res.send({ res: false });
         }
@@ -82,7 +82,7 @@ io.on("connection", (socket) => {
 
     console.log("✅ Nueva conexión socket:", socket.id);
 
-    
+
     socket.on('joinRoom', data => {
         console.log("Usuario uniéndose a sala:", data);
 
