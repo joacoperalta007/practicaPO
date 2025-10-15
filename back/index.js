@@ -44,36 +44,83 @@ io.use((socket, next) => {
 });
 
 app.post('/login', async function login(req, res) {
-    console.log(req.body)
-    if (!req.body.user || !req.body.contraseña) {
-        return res.send({ res: false, message: "Los campos no pueden estar vacíos." });
-    } else {
-        const comprobar = await realizarQuery(
-            `SELECT * FROM Jugadores WHERE usuario = '${req.body.user}' AND contraseña = '${req.body.contraseña}'`
-        );
-        console.log(comprobar)
-        if (comprobar.length > 0) {
-            res.send({ res: true, idLogged: comprobar[0].id_jugador, user: comprobar[0].usuario });
-        } else {
-            res.send({ res: false });
-        }
-    }
-});
-
-app.post('/register', async function (req, res) {
+  try {
     console.log(req.body);
+
+    if (!req.body.user || !req.body.contraseña) {
+      return res.send({ res: false, message: "Los campos no pueden estar vacíos." });
+    }
+
     const comprobar = await realizarQuery(
-        `SELECT * FROM Jugadores WHERE usuario = '${req.body.user}'`
+      `SELECT * FROM Jugadores WHERE usuario = '${req.body.user}' AND contraseña = '${req.body.contraseña}'`
     );
 
-    if (comprobar.length == 0) {
-        const respuesta = await realizarQuery(`INSERT INTO Jugadores (contraseña, email, nombre, usuario)
-        VALUES ('${req.body.contraseña}', '${req.body.email}', '${req.body.nombre}', '${req.body.user}')`)
-        res.send({ res: true, idLogged: respuesta.insertId })
+    console.log(comprobar);
+
+    if (comprobar.length > 0) {
+      res.send({
+        res: true,
+        idLogged: comprobar[0].id_jugador,
+        user: comprobar[0].usuario
+      });
     } else {
-        res.send({ res: false })
+      res.send({ res: false, message: "Usuario o contraseña incorrectos." });
     }
-})
+  } catch (error) {
+    console.error("Error en /login:", error);
+    res.send({ res: false, message: "Error interno del servidor." });
+  }
+});
+
+
+app.post('/register', async function (req, res) {
+  try {
+    console.log(req.body);
+
+    const comprobar = await realizarQuery(
+      `SELECT * FROM Jugadores WHERE usuario = '${req.body.user}'`
+    );
+
+    if (comprobar.length === 0) {
+      const respuesta = await realizarQuery(`
+        INSERT INTO Jugadores (contraseña, email, nombre, usuario)
+        VALUES ('${req.body.contraseña}', '${req.body.email}', '${req.body.nombre}', '${req.body.user}')
+      `);
+      res.send({ res: true, idLogged: respuesta.insertId });
+    } else {
+      res.send({ res: false, message: "El usuario ya existe." });
+    }
+  } catch (error) {
+    console.error("Error en /register:", error);
+    res.send({ res: false, message: "Error interno del servidor." });
+  }
+});
+
+
+app.post('/crearPartida', async function (req, res) {
+  try {
+    console.log(req.body);
+
+    await realizarQuery(`
+      INSERT INTO Partidas (id_ganador, barcos_hundidos_j1, barcos_hundidos_j2)
+      VALUES (NULL, 0, 0)
+    `);
+
+    const idPartida = (await realizarQuery(`SELECT LAST_INSERT_ID() AS idPartida`))[0].idPartida;
+
+    await realizarQuery(`
+      INSERT INTO JugadoresPorPartida (id_partida, id_jugador)
+      SELECT ${idPartida}, j.id_jugador
+      FROM Jugadores j
+      WHERE j.id_jugador IN (${req.body.jugador1}, ${req.body.jugador2})
+    `);
+
+    res.send({ res: true, idPartida });
+  } catch (error) {
+    console.error("Error en /crearPartida:", error);
+    res.send({ res: false, message: "Error creando la partida." });
+  }
+});
 
 // ============= SOCKET.IO - CORREGIDO =============
 io.on("connection", (socket) => {
