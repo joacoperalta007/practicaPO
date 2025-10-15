@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "@/components/Boton";
 import Input from "@/components/Input";
 import { useSearchParams } from "next/navigation";
@@ -15,21 +15,35 @@ export default function Login() {
     const { socket, isConnected } = useSocket();
 
     useEffect(() => {
-        if (!socket || !isConnected || idChat === 0 || !idLogged) return;
+        if (!socket || !isConnected || !idLogged) return;
 
-        console.log("Uniéndose a sala:", idChat, "Usuario:", idLogged);
+        console.log("Uniéndose a sala:", 0, "Usuario:", idLogged);
         socket.emit("joinRoom", {
-            room: idChat,
+            room: 0,
             userId: Number(idLogged)
         });
 
         return () => {
-            socket.emit("leaveRoom", { room: idChat });
+            socket.emit("leaveRoom", { room: 0 });
         };
-    }, [idChat, socket, isConnected, idLogged])
+    }, [socket, isConnected, idLogged])
 
     function crearPartida() {
 
+        //fetch('crearPartida')
+
+        //cuando creas partida, se une al room de la partida
+        if (!socket || !isConnected || !idLogged) return;
+
+        console.log("Uniéndose a sala:", idPartida, "Usuario:", idLogged);
+        socket.emit("joinRoom", {
+            room: idPartida,
+            userId: Number(idLogged)
+        });
+
+        return () => {
+            socket.emit("leaveRoom", { room: idPartida });
+        };
     }
 
     function scores() {
