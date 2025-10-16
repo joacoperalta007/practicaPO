@@ -15,6 +15,7 @@ export default function Login() {
     const [mostrar, setMostrar] = useState("false");
     const [mail, setMail] = useState("false");
     const router = useRouter();
+    const [inicio, setInicio] = useState(0);
 
     function guardarContraseña(event) {
         setContraseña(event.target.value);
@@ -64,11 +65,13 @@ export default function Login() {
                     console.log(response)
                     //popup no alert
                     alert("Ingresaste con exito");
+                    setInicio(1);
                     let url = "/home?idLogged=" + response.idLogged + "&user=" + user
                     router.push(url);
                 } else {
                     //popup no alert
                     alert("Número de teléfono o contraseña incorrectos");
+                    setInicio(2);
 
                 }
             })
@@ -94,10 +97,12 @@ export default function Login() {
                 if (response.res) {
                     //popup no alert
                     alert("Cuenta creada con exito");
+                    setInicio(1);
                     router.push("/home?idLogged=${response.idLogged}&user=${user}");
                 } else {
                     //popup no alert
                     alert("El usuario ya existe");
+                    setInicio(2);
                 }
             })
     }
@@ -106,7 +111,7 @@ export default function Login() {
     function irRegister() {
         setMostrar(!mostrar)
     }
-
+    //<Button onClick={login} text="Iniciar sesion"></Button>
     return (
         <>
             <div className={styles.contenedor}>
@@ -145,18 +150,23 @@ export default function Login() {
                     <Input onChange={guardarContraseña2} type={"password"}></Input>
                     <br></br>
                     <br></br>
-
-                    <Button onClick={register} text="Registrarse"></Button>
+                    <div className={styles.boton2}>
+                    <Button onClick={register} text="registrarse"></Button>
+                    </div>
                 </div>
 
             )}
-            <div>
-                <PopUp>
+            <PopUp>
+                {inicio ==1 ?(
                     <div>
-                        <h1>Ingresaste con éxito</h1>
+                        <h1>Ingresaste con éxito!</h1>
                     </div>
-                </PopUp>
-            </div>
+                ) : inicio == 2 ?(
+                    <div>
+                        <h1>El usuario ya existe, vuelve a intentarlo.</h1>
+                    </div>
+                ):(<></>)}
+            </PopUp>
         </>
     )
 

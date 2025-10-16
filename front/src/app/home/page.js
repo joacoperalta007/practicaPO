@@ -65,8 +65,7 @@ export default function Login() {
             <section className={styles.section1}>
                 <div className={styles.contenedor}>
                     <div>
-                       <PopUp>
-
+                       <PopUp boton={<button className={styles.boton} onClick={crearPartida}>Crear partida</button>}>
                             <div>
                                 <h1>soy children</h1>
                             </div>
