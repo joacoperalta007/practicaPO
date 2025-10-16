@@ -1,0 +1,12 @@
+.boton{
+    padding:1.5rem;
+    font-size:1.5rem;
+    background-color: #0c7272;
+    border: none;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+    border-radius: 1.5rem;
+}

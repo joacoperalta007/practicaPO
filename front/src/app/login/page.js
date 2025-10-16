@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import Button from "@/components/Boton";
 import Input from "@/components/Input";
 import styles from "@/app/login/page.module.css"
-import { useRouter } from "next/navigation";
+import PopUp from "@/components/PopUp";
+
 
 export default function Login() {
     const [contraseña, setContraseña] = useState("");
@@ -148,7 +149,15 @@ export default function Login() {
                     <Button onClick={register} text="Registrarse"></Button>
                 </div>
 
-            )}</>
+            )}
+            <div>
+                <PopUp>
+                    <div>
+                        <h1>Ingresaste con éxito</h1>
+                    </div>
+                </PopUp>
+            </div>
+        </>
     )
 
 

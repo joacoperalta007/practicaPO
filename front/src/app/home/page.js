@@ -6,6 +6,7 @@ import Input from "@/components/Input";
 import { useSearchParams } from "next/navigation";
 import styles from "@/app/home/page.module.css";
 import { useSocket } from "../hooks/useSocket";
+import PopUp from "@/components/PopUp";
 
 export default function Login() {
 
@@ -64,11 +65,17 @@ export default function Login() {
             <section className={styles.section1}>
                 <div className={styles.contenedor}>
                     <div>
-                        <button className={styles.boton}>Crear partida</button>
+                       <PopUp>
+
+                            <div>
+                                <h1>soy children</h1>
+                            </div>
+                       </PopUp>
                     </div>
                     <div>
                         <button className={styles.boton}>Ver puntajes</button>
                     </div>
+                    
                 </div>
             </section>
 
