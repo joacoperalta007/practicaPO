@@ -43,6 +43,7 @@ io.use((socket, next) => {
     sessionMiddleware(socket.request, {}, next);
 });
 
+//funciona
 app.post('/login', async function login(req, res) {
   try {
     console.log(req.body);
@@ -97,6 +98,9 @@ app.post('/register', async function (req, res) {
 });
 
 
+let jugadoresEnLinea = []
+
+
 app.post('/crearPartida', async function (req, res) {
   try {
     console.log(req.body);
@@ -135,23 +139,37 @@ io.on("connection", (socket) => {
         // Salir de la sala anterior si existe
         if (req.session.room) {
             socket.leave(req.session.room);
+            if (jugadoresEnLinea.length > 0) {
+                for (let i = 0; i < jugadoresEnLinea;i++){
+                    if(jugadoresEnLinea[i] == data.userId){
+                        jugadoresEnLinea.splice(i)
+                    }
+                }
+            }
+
             console.log("Salió de sala:", req.session.room);
+            //sacar del vectpr creo q con splice
         }
 
         // Guardar la sala y el usuario en la sesión
         req.session.room = data.room;
         if (data.userId) {
             req.session.user = data.userId;
+            jugadoresEnLinea.push(data.userId)
         }
 
         // Unirse a la nueva sala
         socket.join(req.session.room);
+        io.to(data.room).emit('jugadores_en_linea', { jugadores: jugadoresEnLinea })
+        
         console.log("🚪 Entró a sala:", req.session.room);
 
         req.session.save();
     })
-    socket.join('global');
-
+    //socket.join('global');
+    socket.on('nuevaPartida', async data => {
+        console.log("")
+    })
     // Cuando se envía un mensaje
     socket.on('sendMessage', async data => {
         console.log("Mensaje recibido para enviar:", data);
