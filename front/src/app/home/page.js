@@ -67,7 +67,7 @@ export default function Login() {
                     <div>
                        <PopUp boton={<button className={styles.boton} onClick={crearPartida}>Crear partida</button>}>
                             <div>
-                                <h1>soy children</h1>
+                                <h1></h1>
                             </div>
                        </PopUp>
                     </div>
