@@ -1,0 +1,27 @@
+.header {
+    font-size:0.7rem;
+    max-width: 100%;
+    padding: 1.5rem;
+    background-color: #2ba5a5;
+    color: rgba(246, 241, 241, 0.917)
+}
+
+.boton{
+    padding:1.5rem;
+    font-size:1.5rem;
+    background-color: #0c7272;
+    border: none;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+    border-radius: 1.5rem;
+}
+
+.contenedor{
+    padding-top:12rem;
+    display:flex;
+    flex-direction: row;
+    justify-content:space-around;
+}

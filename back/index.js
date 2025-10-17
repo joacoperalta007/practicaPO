@@ -43,6 +43,7 @@ io.use((socket, next) => {
   sessionMiddleware(socket.request, {}, next);
 });
 
+//funciona
 app.post('/login', async function login(req, res) {
   try {
     console.log(req.body);
@@ -96,6 +97,16 @@ app.post('/register', async function (req, res) {
   }
 });
 
+app.post('/getUsuarios', async function (req, res) {
+  try {
+    console.log(req.body)
+    const user = await realizarQuery(`SELECT usuario FROM Jugadores WHERE id_jugador != ${req.body.userId}`);
+    res.send({ res: true, usuario: user });
+  } catch {
+    res.send({ res: false, message: "Error interno del servidor." });
+  }
+})
+
 
 app.post('/crearPartida', async function (req, res) {
   try {
@@ -121,6 +132,7 @@ app.post('/crearPartida', async function (req, res) {
     res.send({ res: false, message: "Error creando la partida." });
   }
 });
+
 
 app.delete('/eliminarJugador', async function (req, res) {
   try {
@@ -160,6 +172,10 @@ app.get('/historialPartidas', async function (req, res) {
   }
 });
 
+
+let jugadoresEnLinea = []
+
+
 // ============= SOCKET.IO - CORREGIDO =============
 io.on("connection", (socket) => {
   const req = socket.request;
@@ -173,52 +189,43 @@ io.on("connection", (socket) => {
     // Salir de la sala anterior si existe
     if (req.session.room) {
       socket.leave(req.session.room);
+      if (jugadoresEnLinea.length > 0) {
+        for (let i = 0; i < jugadoresEnLinea.length; i++) {
+          if (jugadoresEnLinea[i] == data.userId) {
+            jugadoresEnLinea.splice(i, 1)
+          }
+        }
+      }
+
       console.log("Salió de sala:", req.session.room);
+      
     }
 
     // Guardar la sala y el usuario en la sesión
     req.session.room = data.room;
     if (data.userId) {
       req.session.user = data.userId;
+
+      if (!jugadoresEnLinea.includes(data.userId)) {
+        jugadoresEnLinea.push(data.userId);
+      }
     }
 
     // Unirse a la nueva sala
     socket.join(req.session.room);
+
+    io.to(data.room).emit('jugadores_en_linea', { jugadores: jugadoresEnLinea })
+
     console.log("🚪 Entró a sala:", req.session.room);
 
     req.session.save();
   })
-  socket.join('global');
 
+  //socket.join('global');
+  socket.on('nuevaPartida', async data => {
+    console.log("")
+  })
   // Cuando se envía un mensaje
-  socket.on('sendMessage', async data => {
-    console.log("Mensaje recibido para enviar:", data);
-
-    const room = data.room || req.session.room;
-
-    if (!room) {
-      console.error("No hay sala definida para enviar el mensaje");
-      return;
-    }
-
-    // ✅ Traer info del usuario desde la BD
-    const usuario = await realizarQuery(
-      `SELECT nombre, apellido, foto_perfil FROM Usuarios WHERE id_usuario = ${data.mensaje.id_usuario}`
-    );
-
-    // Emitir el mensaje con toda la info
-    io.to(room).emit('new_message', {
-      room: room,
-      message: data.mensaje.contenido || data.mensaje.mensaje,
-      userId: data.mensaje.id_usuario,
-      nombre: usuario[0]?.nombre || '',
-      apellido: usuario[0]?.apellido || '',
-      foto_perfil: usuario[0]?.foto_perfil || null,
-      timestamp: Date.now()
-    });
-
-    console.log("Mensaje emitido a sala:", room);
-  });
 
   // Opcional: Para salir de una sala
   socket.on('leaveRoom', data => {
@@ -229,6 +236,22 @@ io.on("connection", (socket) => {
   });
 
   socket.on('disconnect', () => {
-    console.log("❌ Socket desconectado:", socket.id);
+    console.log("Usuario desconectado");
+
+    // Remover usuario de jugadoresEnLinea
+    if (req.session.user) {
+      const index = jugadoresEnLinea.indexOf(req.session.user);
+      if (index !== -1) {
+        jugadoresEnLinea.splice(index, 1);
+      }
+
+      // Emitir la lista actualizada a la sala
+      if (req.session.room) {
+        io.to(req.session.room).emit('jugadores_en_linea', { jugadores: jugadoresEnLinea });
+      }
+
+      console.log("Usuario removido:", req.session.user);
+      console.log("Jugadores restantes:", jugadoresEnLinea);
+    }
   });
 });
