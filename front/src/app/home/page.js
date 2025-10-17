@@ -14,6 +14,7 @@ export default function Login() {
     const usuario = searchParams.get("user");
     const idLogged = searchParams.get("idLogged");
     const { socket, isConnected } = useSocket();
+    const [usuariosEnLinea, setUsuariosEnLinea] = useState([]);
 
     useEffect(() => {
         if (!socket || !isConnected || !idLogged) return;
@@ -23,6 +24,13 @@ export default function Login() {
             room: 0,
             userId: Number(idLogged)
         });
+        socket.on("jugadores_en_linea", data => {
+            console.log("Jugadores en línea:", data.jugadores);
+            setUsuariosEnLinea(data.jugadores);
+            console.log("Usuarios en línea actualizados:", data.jugadores);
+        });
+
+        jugadores();
 
         return () => {
             socket.emit("leaveRoom", { room: 0 });
@@ -50,6 +58,26 @@ export default function Login() {
     function scores() {
 
     }
+    function jugadores(){
+        for (let i=0; i<usuariosEnLinea.length; i++){
+            fetch('http://localhost:4000/login', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({userId: usuariosEnLinea[i]})
+        })
+            .then(response => response.json())
+            .then(response => {
+                if (response.res) {
+                    console.log(response)
+                } else {
+                    console.log("error")
+                }
+            })
+        }
+        
+    }
 
     //cuando tocas en PC1 el crear partida y elegis un jugador (de 
     // los que estan en linea (rooms)) a PC2
@@ -65,16 +93,17 @@ export default function Login() {
             <section className={styles.section1}>
                 <div className={styles.contenedor}>
                     <div>
-                       <PopUp boton={<button className={styles.boton} onClick={crearPartida}>Crear partida</button>}>
-                            <div>
-                                <h1></h1>
+                        <PopUp boton={<button className={styles.boton} onClick={crearPartida}>Crear partida</button>}>
+                            <div className={styles.crearPartidaPopup}>
+                                <h1>Crear partida</h1>
+                                <p>{usuariosEnLinea}</p>
                             </div>
-                       </PopUp>
+                        </PopUp>
                     </div>
                     <div>
                         <button className={styles.boton}>Ver puntajes</button>
                     </div>
-                    
+
                 </div>
             </section>
 

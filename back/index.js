@@ -97,7 +97,15 @@ app.post('/register', async function (req, res) {
   }
 });
 
-
+app.post('/getUsuarios', async function (req, res) {
+  try {
+    console.log(req.body)
+    const user = await realizarQuery(`SELECT usuario FROM Jugadores WHERE id_jugador != ${req.body.userId}`);
+    res.send({ res: true, usuario: user });
+  } catch {
+    res.send({ res: false, message: "Error interno del servidor." });
+  }
+})
 
 
 app.post('/crearPartida', async function (req, res) {
@@ -142,9 +150,9 @@ io.on("connection", (socket) => {
     if (req.session.room) {
       socket.leave(req.session.room);
       if (jugadoresEnLinea.length > 0) {
-        for (let i = 0; i < jugadoresEnLinea; i++) {
+        for (let i = 0; i < jugadoresEnLinea.length; i++) {
           if (jugadoresEnLinea[i] == data.userId) {
-            jugadoresEnLinea.splice(i)
+            jugadoresEnLinea.splice(i, 1)
           }
         }
       }
@@ -157,7 +165,9 @@ io.on("connection", (socket) => {
     req.session.room = data.room;
     if (data.userId) {
       req.session.user = data.userId;
-      jugadoresEnLinea.push(data.userId)
+      if (!jugadoresEnLinea.includes(data.userId)) {
+        jugadoresEnLinea.push(data.userId);
+      }
     }
 
     // Unirse a la nueva sala
@@ -173,34 +183,7 @@ io.on("connection", (socket) => {
     console.log("")
   })
   // Cuando se envía un mensaje
-  socket.on('sendMessage', async data => {
-    console.log("Mensaje recibido para enviar:", data);
 
-    const room = data.room || req.session.room;
-
-    if (!room) {
-      console.error("No hay sala definida para enviar el mensaje");
-      return;
-    }
-
-    // ✅ Traer info del usuario desde la BD
-    const usuario = await realizarQuery(
-      `SELECT nombre, apellido, foto_perfil FROM Usuarios WHERE id_usuario = ${data.mensaje.id_usuario}`
-    );
-
-    // Emitir el mensaje con toda la info
-    io.to(room).emit('new_message', {
-      room: room,
-      message: data.mensaje.contenido || data.mensaje.mensaje,
-      userId: data.mensaje.id_usuario,
-      nombre: usuario[0]?.nombre || '',
-      apellido: usuario[0]?.apellido || '',
-      foto_perfil: usuario[0]?.foto_perfil || null,
-      timestamp: Date.now()
-    });
-
-    console.log("Mensaje emitido a sala:", room);
-  });
 
   // Opcional: Para salir de una sala
   socket.on('leaveRoom', data => {
@@ -210,7 +193,26 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on('disconnect', () => {
+  /*socket.on('disconnect', () => {
     console.log("❌ Socket desconectado:", socket.id);
+  });*/
+  socket.on('disconnect', () => {
+    console.log("Usuario desconectado");
+
+    // Remover usuario de jugadoresEnLinea
+    if (req.session.user) {
+      const index = jugadoresEnLinea.indexOf(req.session.user);
+      if (index !== -1) {
+        jugadoresEnLinea.splice(index, 1);
+      }
+
+      // Emitir la lista actualizada a la sala
+      if (req.session.room) {
+        io.to(req.session.room).emit('jugadores_en_linea', { jugadores: jugadoresEnLinea });
+      }
+
+      console.log("Usuario removido:", req.session.user);
+      console.log("Jugadores restantes:", jugadoresEnLinea);
+    }
   });
 });

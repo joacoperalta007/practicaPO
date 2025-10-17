@@ -53,36 +53,6 @@ export default function Login() {
         setMail(event.target.value);
     }
 
-    //hay que hacer un componente popup para que quede mejor que el alert que queda re croto
-    /*async function login() {
-        let data = {
-            user: user,
-            contraseña: contraseña,
-        };
-
-        fetch('http://localhost:4000/login', {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data)
-        })
-            .then(response => response.json())
-            .then(response => {
-                if (response.res) {
-                    console.log(response)
-                    //popup no alert
-                    setInicio(1);
-                    let url = "/home?idLogged=" + response.idLogged + "&user=" + user
-                    router.push(url);
-                } else {
-                    //popup no alert
-                    setInicio(3);
-
-                }
-            })
-
-    }*/
     async function login() {
         let data = {
             user: user,
