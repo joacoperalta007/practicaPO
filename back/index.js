@@ -51,9 +51,7 @@ app.post('/login', async function login(req, res) {
       return res.send({ res: false, message: "Los campos no pueden estar vacíos." });
     }
 
-    const comprobar = await realizarQuery(
-      `SELECT * FROM Jugadores WHERE usuario = '${req.body.user}' AND contraseña = '${req.body.contraseña}'`
-    );
+    const comprobar = await realizarQuery(`SELECT * FROM Jugadores WHERE usuario = '${req.body.user}' AND contraseña = '${req.body.contraseña}'`);
 
     console.log(comprobar);
 
@@ -77,15 +75,10 @@ app.post('/register', async function (req, res) {
   try {
     console.log(req.body);
 
-    const comprobar = await realizarQuery(
-      `SELECT * FROM Jugadores WHERE usuario = '${req.body.user}'`
-    );
+    const comprobar = await realizarQuery(`SELECT * FROM Jugadores WHERE usuario = '${req.body.user}'`);
 
     if (comprobar.length === 0) {
-      const respuesta = await realizarQuery(`
-        INSERT INTO Jugadores (contraseña, email, nombre, usuario)
-        VALUES ('${req.body.contraseña}', '${req.body.email}', '${req.body.nombre}', '${req.body.user}')
-      `);
+      const respuesta = await realizarQuery(`INSERT INTO Jugadores (contraseña, email, nombre, usuario)VALUES ('${req.body.contraseña}', '${req.body.email}', '${req.body.nombre}', '${req.body.user}')`);
       res.send({ res: true, idLogged: respuesta.insertId });
     } else {
       res.send({ res: false, message: "El usuario ya existe." });
@@ -101,19 +94,11 @@ app.post('/crearPartida', async function (req, res) {
   try {
     console.log(req.body);
 
-    await realizarQuery(`
-      INSERT INTO Partidas (id_ganador, barcos_hundidos_j1, barcos_hundidos_j2)
-      VALUES (NULL, 0, 0)
-    `);
+    await realizarQuery(`INSERT INTO Partidas (id_ganador, barcos_hundidos_j1, barcos_hundidos_j2) VALUES (NULL, 0, 0)`);
 
     const idPartida = (await realizarQuery(`SELECT LAST_INSERT_ID() AS idPartida`))[0].idPartida;
 
-    await realizarQuery(`
-      INSERT INTO JugadoresPorPartida (id_partida, id_jugador)
-      SELECT ${idPartida}, j.id_jugador
-      FROM Jugadores j
-      WHERE j.id_jugador IN (${req.body.jugador1}, ${req.body.jugador2})
-    `);
+    await realizarQuery(`INSERT INTO JugadoresPorPartida (id_partida, id_jugador) SELECT ${idPartida}, j.id_jugador FROM Jugadores j WHERE j.id_jugador IN (${req.body.jugador1}, ${req.body.jugador2})`);
 
     res.send({ res: true, idPartida });
   } catch (error) {
@@ -126,7 +111,7 @@ app.delete('/eliminarJugador', async function (req, res) {
   try {
     console.log(req.body)
     await realizarQuery(`DELETE FROM Jugadores WHERE id_jugador = ${req.body.id_jugador}`)
-    res.send({ res: true, id_jugador })
+    res.send({ res: true})
   } catch (error) {
     console.error("Error en /eliminarJugador:", error);
     res.send({ res: false, message: "Error eliminando el jugador." });
@@ -144,14 +129,53 @@ app.put('/cambiarNombre', async function (req, res) {
   }
 });
 
+app.post('/agregarBarco', async function (req, res) {
+  try {
+    console.log(req.body);
+
+    await realizarQuery(`INSERT INTO Barcos (longitud, impactos, id_partida, id_jugador) VALUES ('${req.body.longitud}', '${req.body.impactos}', '${req.body.id_partida}', '${req.body.id_jugador}')`);
+
+    const idBarco = (await realizarQuery(`SELECT LAST_INSERT_ID() AS idBarco`))[0].idBarco;
+
+    for (let i = 0; i < req.body.coordenadas.length; i++) {
+      const arrayCords = req.body.coordenadas[i];
+      await realizarQuery(`INSERT INTO Coordenadas (id_partida, id_barco, coordenada_barco, impacto) VALUES ('${req.body.id_partida}', ${idBarco}, '${arrayCords}', false)`);
+    }
+
+    res.send({ res: true, idBarco });
+  } catch (error) {
+    console.error("Error en /agregarBarco:", error);
+    res.send({ res: false, message: "Error al agregar el barco." });
+  }
+});
+
+app.post('/disparo', async function (req, res) {
+  try {
+    console.log(req.body);
+
+    const coordenada = await realizarQuery(`SELECT Coordenadas.id_barco, Barcos.id_jugador FROM Coordenadas INNER JOIN Barcos ON Coordenadas.id_barco = Barcos.id_barco WHERE Coordenadas.id_partida = ${req.body.id_partida} AND Coordenadas.coordenada_barco = '${req.body.coordenada}' `);
+
+    if (coordenada.length == 0) {
+      return res.send({ res: true, impacto: false, message: "Agua" });
+    }
+
+    await realizarQuery(`UPDATE Coordenadas SET impacto = true WHERE id_barco = ${coordenada[0].id_barco} AND coordenada_barco = '${req.body.coordenada}'`);
+
+    await realizarQuery(`UPDATE Barcos SET impactos = impactos + 1 WHERE id_barco = ${coordenada[0].id_barco}`);
+
+    res.send({ res: true, impacto: true, message: "Impacto" });
+
+  } catch (error) {
+    console.error("Error en /disparo:", error);
+    res.send({ res: false, message: "Error al procesar el disparo." });
+  }
+});
+
+
+
 app.get('/historialPartidas', async function (req, res) {
   try {
-    const historial = await realizarQuery(`
-      SELECT p.id_partida, p.id_ganador, p.barcos_hundidos_j1, p.barcos_hundidos_j2
-      FROM Partidas p
-      JOIN JugadoresPorPartida jpp  ON Partidas.id_partida = jpp.id_partida
-      WHERE jpp.id_jugador = ${req.query.id_jugador}
-    `);
+    const historial = await realizarQuery(`SELECT p.id_partida, p.id_ganador, p.barcos_hundidos_j1, p.barcos_hundidos_j2 FROM Partidas p INNER JOIN JugadoresPorPartida jpp  ON Partidas.id_partida = jpp.id_partida WHERE jpp.id_jugador = ${req.query.id_jugador}`);
 
     res.send({ res: true, historial });
   } catch (error) {
