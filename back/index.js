@@ -134,7 +134,47 @@ app.post('/crearPartida', async function (req, res) {
 });
 
 
+app.delete('/eliminarJugador', async function (req, res) {
+  try {
+    console.log(req.body)
+    await realizarQuery(`DELETE FROM Jugadores WHERE id_jugador = ${req.body.id_jugador}`)
+    res.send({ res: true, id_jugador })
+  } catch (error) {
+    console.error("Error en /eliminarJugador:", error);
+    res.send({ res: false, message: "Error eliminando el jugador." });
+  }
+})
+
+app.put('/cambiarNombre', async function (req, res) {
+  try {
+    console.log(req.body)
+    await realizarQuery(` UPDATE Jugadores SET nombre = '${req.body.nombre}' WHERE id_jugador = ${req.body.id_jugador}`);
+    res.send({ res: true});
+  } catch (error) {
+    console.error("Error en /cambiarNombre:", error);
+    res.send({ res: false, mensaje: "Error al actualizar el nombre" });
+  }
+});
+
+app.get('/historialPartidas', async function (req, res) {
+  try {
+    const historial = await realizarQuery(`
+      SELECT p.id_partida, p.id_ganador, p.barcos_hundidos_j1, p.barcos_hundidos_j2
+      FROM Partidas p
+      JOIN JugadoresPorPartida jpp  ON Partidas.id_partida = jpp.id_partida
+      WHERE jpp.id_jugador = ${req.query.id_jugador}
+    `);
+
+    res.send({ res: true, historial });
+  } catch (error) {
+    console.error("Error en /historialPartidas:", error);
+    res.send({ res: false, message: "Error obteniendo el historial de partidas." });
+  }
+});
+
+
 let jugadoresEnLinea = []
+
 
 // ============= SOCKET.IO - CORREGIDO =============
 io.on("connection", (socket) => {
@@ -158,13 +198,14 @@ io.on("connection", (socket) => {
       }
 
       console.log("Salió de sala:", req.session.room);
-      //sacar del vectpr creo q con splice
+      
     }
 
     // Guardar la sala y el usuario en la sesión
     req.session.room = data.room;
     if (data.userId) {
       req.session.user = data.userId;
+
       if (!jugadoresEnLinea.includes(data.userId)) {
         jugadoresEnLinea.push(data.userId);
       }
@@ -172,18 +213,19 @@ io.on("connection", (socket) => {
 
     // Unirse a la nueva sala
     socket.join(req.session.room);
+
     io.to(data.room).emit('jugadores_en_linea', { jugadores: jugadoresEnLinea })
 
     console.log("🚪 Entró a sala:", req.session.room);
 
     req.session.save();
   })
+
   //socket.join('global');
   socket.on('nuevaPartida', async data => {
     console.log("")
   })
   // Cuando se envía un mensaje
-
 
   // Opcional: Para salir de una sala
   socket.on('leaveRoom', data => {
@@ -193,9 +235,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  /*socket.on('disconnect', () => {
-    console.log("❌ Socket desconectado:", socket.id);
-  });*/
   socket.on('disconnect', () => {
     console.log("Usuario desconectado");
 
