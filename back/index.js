@@ -144,6 +144,22 @@ app.put('/cambiarNombre', async function (req, res) {
   }
 });
 
+app.get('/historialPartidas', async function (req, res) {
+  try {
+    const historial = await realizarQuery(`
+      SELECT p.id_partida, p.id_ganador, p.barcos_hundidos_j1, p.barcos_hundidos_j2
+      FROM Partidas p
+      JOIN JugadoresPorPartida jpp  ON Partidas.id_partida = jpp.id_partida
+      WHERE jpp.id_jugador = ${req.query.id_jugador}
+    `);
+
+    res.send({ res: true, historial });
+  } catch (error) {
+    console.error("Error en /historialPartidas:", error);
+    res.send({ res: false, message: "Error obteniendo el historial de partidas." });
+  }
+});
+
 // ============= SOCKET.IO - CORREGIDO =============
 io.on("connection", (socket) => {
   const req = socket.request;
