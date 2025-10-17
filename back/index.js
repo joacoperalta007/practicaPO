@@ -13,7 +13,7 @@ var port = process.env.PORT || 4000;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001"],
+  origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002","http://localhost:3003"],
   credentials: true
 }));
 
@@ -25,7 +25,7 @@ const server = app.listen(port, () => {
 
 const io = require('socket.io')(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin: ["http://localhost:3000", "http://localhost:3001","http://localhost:3002","http://localhost:3003"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
   }
@@ -100,7 +100,7 @@ app.post('/register', async function (req, res) {
 app.post('/getUsuarios', async function (req, res) {
   try {
     console.log(req.body)
-    const user = await realizarQuery(`SELECT usuario FROM Jugadores WHERE id_jugador != ${req.body.userId}`);
+    const user = await realizarQuery(`SELECT usuario FROM Jugadores WHERE id_jugador = ${req.body.userId}`);
     res.send({ res: true, usuario: user });
   } catch {
     res.send({ res: false, message: "Error interno del servidor." });

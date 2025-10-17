@@ -15,6 +15,7 @@ export default function Login() {
     const idLogged = searchParams.get("idLogged");
     const { socket, isConnected } = useSocket();
     const [usuariosEnLinea, setUsuariosEnLinea] = useState([]);
+    const [nombresEnLinea, setNombresEnLinea] = useState([]);
 
     useEffect(() => {
         if (!socket || !isConnected || !idLogged) return;
@@ -29,14 +30,16 @@ export default function Login() {
             setUsuariosEnLinea(data.jugadores);
             console.log("Usuarios en línea actualizados:", data.jugadores);
         });
-
-        jugadores();
-
         return () => {
             socket.emit("leaveRoom", { room: 0 });
         };
     }, [socket, isConnected, idLogged])
+    useEffect(() => {
+        if (usuariosEnLinea.length > 0) {
+            jugadores();
+        }
 
+    }, [usuariosEnLinea])
     function crearPartida() {
 
         //fetch('crearPartida')
@@ -58,25 +61,62 @@ export default function Login() {
     function scores() {
 
     }
-    function jugadores(){
-        for (let i=0; i<usuariosEnLinea.length; i++){
-            fetch('http://localhost:4000/login', {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({userId: usuariosEnLinea[i]})
-        })
-            .then(response => response.json())
-            .then(response => {
-                if (response.res) {
-                    console.log(response)
-                } else {
-                    console.log("error")
-                }
+    /*function jugadores() {
+        for (let i = 0; i < usuariosEnLinea.length; i++) {
+            console.log("Usuario en linea:", usuariosEnLinea[i]);
+            fetch('http://localhost:4000/getUsuarios', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ userId: usuariosEnLinea[i] })
             })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.res) {
+                        console.log(response)
+                        setNombresEnLinea(prevNombres => [...prevNombres, response.usuario[0].usuario]);
+                    } else {
+                        console.log("error")
+                    }
+                })
         }
-        
+
+    }*/
+    async function jugadores() {
+        const usuariosCompletos = [];
+
+        for (let i = 0; i < usuariosEnLinea.length; i++) {
+            console.log("Usuario en linea:", usuariosEnLinea[i]);
+
+            try {
+                const response = await fetch('http://localhost:4000/getUsuarios', {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ userId: usuariosEnLinea[i] })
+                });
+
+                const data = await response.json();
+
+                if (data.res) {
+                    console.log(data);
+                    // Agregar objeto con id y nombre en la misma posición
+                    usuariosCompletos.push({
+                        id: usuariosEnLinea[i],
+                        nombre: data.usuario[0].usuario
+                    });
+                } else {
+                    console.log("error");
+                }
+            } catch (error) {
+                console.log("Error en fetch:", error);
+            }
+        }
+
+        // Actualizar el estado una sola vez con todos los usuarios
+        setNombresEnLinea(usuariosCompletos);
     }
 
     //cuando tocas en PC1 el crear partida y elegis un jugador (de 
@@ -96,16 +136,26 @@ export default function Login() {
                         <PopUp boton={<button className={styles.boton} onClick={crearPartida}>Crear partida</button>}>
                             <div className={styles.crearPartidaPopup}>
                                 <h1>Crear partida</h1>
-                                <p>{usuariosEnLinea}</p>
+                                <h2>Elige uno de los jugadores en línea:</h2>
+                                <select>
+                                    {usuariosEnLinea.length != 0 ? (
+                                        usuariosEnLinea.map((usuarioId) => {
+                                            if (usuarioId !== Number(idLogged)) {
+                                                return (<option key={usuarioId} value={usuarioId}>Jugador {usuarioId}</option>)
+                                            }
+                                        }
+                                        )
+                                    ) : <option>No hay jugadores en línea</option>}
+                                </select>
                             </div>
                         </PopUp>
                     </div>
                     <div>
                         <button className={styles.boton}>Ver puntajes</button>
                     </div>
-
-                </div>
-            </section>
+                </div >
+                <h2>{nombresEnLinea}</h2>
+            </section >
 
 
 
