@@ -108,7 +108,7 @@ app.post('/getUsuarios', async function (req, res) {
 })
 
 
-app.post('/crearPartida', async function (req, res) {
+/*app.post('/crearPartida', async function (req, res) {
   try {
     console.log(req.body);
 
@@ -130,6 +130,34 @@ app.post('/crearPartida', async function (req, res) {
   } catch (error) {
     console.error("Error en /crearPartida:", error);
     res.send({ res: false, message: "Error creando la partida." });
+  }
+});*/
+app.post('/crearPartida', async function (req, res) {
+  try {
+    console.log("Datos recibidos:", req.body);
+
+    // Insertar la partida y obtener el insertId directamente
+    const resultado = await realizarQuery(`
+      INSERT INTO Partidas (id_ganador, barcos_hundidos_j1, barcos_hundidos_j2)
+      VALUES (NULL, 0, 0)
+    `);
+
+    const idPartida = resultado.insertId;
+    
+    console.log("ID partida creada:", idPartida);
+
+    // Insertar jugadores en la partida
+    await realizarQuery(`
+      INSERT INTO JugadoresPorPartida (id_partida, id_jugador)
+      VALUES (${idPartida}, ${req.body.jugador1}), (${idPartida}, ${req.body.jugador2})
+    `);
+
+    console.log("Jugadores agregados a la partida");
+
+    res.send({ res: true, idPartida: idPartida });
+  } catch (error) {
+    console.error("Error en /crearPartida:", error);
+    res.send({ res: false, message: "Error creando la partida: " + error.message });
   }
 });
 
@@ -227,8 +255,10 @@ io.on("connection", (socket) => {
     
     // Emitir a toda la sala 0 (sala de espera)
     io.to(0).emit('partidaRequest', {
-        player2: data.jugador2,
-        player1: data.jugador1,
+        player2Id: data.jugador2Id,
+        player1Id: data.jugador1Id,
+        player1Name: data.jugador1Nombre,
+        player2Name: data.jugador2Nombre,
         idPartida: data.idPartida
     });
 });

@@ -9,7 +9,7 @@ import { useSocket } from "../hooks/useSocket";
 import Image from 'next/image';
 import PopUp from "@/components/PopUp";
 
-export default function Login() {
+export default function Home() {
 
     const searchParams = useSearchParams();
     const usuario = searchParams.get("user");
@@ -19,11 +19,18 @@ export default function Login() {
     const [nombresEnLinea, setNombresEnLinea] = useState([]);
     const [selectedImg, setSelectedImg] = useState(null);
     const [selectedPlayerId, setSelectedPlayerId] = useState(null);
+    const [selectedPlayerName, setSelectedPlayerName] = useState(null);
     const [partidaRequest, setPartidaRequest] = useState(false);
     const [mostrarPopup, setMostrarPopup] = useState(false);
     const router = useRouter();
-    const [jugador2, setJugador2] = useState("")
-    const [jugador1, setJugador1] = useState("")
+    const [idPartida, setIdPartida] = useState(null)
+    /*const [jugador2, setJugador2] = useState("")
+    const [jugador1, setJugador1] = useState("")*/
+    const [jugador1Nombre, setJugador1Nombre] = useState("");
+    const [jugador2Nombre, setJugador2Nombre] = useState("");
+    const [jugador1Id, setJugador1Id] = useState(null);
+    const [jugador2Id, setJugador2Id] = useState(null);
+    const [selectedImg2, setSelectedImg2] = useState(null);
 
     const personajes = [
         "/imagenes/pablo.jpg",
@@ -45,21 +52,34 @@ export default function Login() {
 
     ]
     useEffect(() => {
-        if(!socket || !isConnected || !idLogged)return;
-        socket.on("partidaRequest", data => {
-            console.log("Solicitu de partida recibida de:", data.jugador1);
-            setPartidaRequest(true);
-            setJugador1(data.jugador1);
-            setJugador2(data.jugador2);
-            setIdPartida(data.idPartida);
-        });
-    })
+        if (selectedPlayerId) {
+            try {
+                const response = fetch('http://localhost:4000/getUsuarios', {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ userId: selectedPlayerId })
+                })
+                    .then(response => response.json())
+                    .then(response => {
+                        if (response.res) {
+                            const selectedUser = response.usuario[0].usuario
+                            setSelectedPlayerName(selectedUser)
+                        }
+
+                    })
+            } catch {
+                console.log("error en getUsuario selected")
+            }
+        }
+    }, [selectedPlayerId])
     useEffect(() => {
         if (partidaRequest == true) {
             setMostrarPopup(true);
         }
     }, [partidaRequest]);
-    useEffect(() => {
+    /*useEffect(() => {
         if (!socket || !isConnected || !idLogged) return;
 
         console.log("Uniéndose a sala:", 0, "Usuario:", idLogged);
@@ -72,7 +92,7 @@ export default function Login() {
             setUsuariosEnLinea(data.jugadores);
             console.log("Usuarios en línea actualizados:", data.jugadores);
         });
-        
+
         socket.on('partidaRequest', data => {
             console.log("Petición de partida recibida:", data);
 
@@ -86,63 +106,172 @@ export default function Login() {
         return () => {
             socket.emit("leaveRoom", { room: 0 });
         };
-    }, [socket, isConnected, idLogged])
+    }, [socket, isConnected, idLogged])*/
+    useEffect(() => {
+        if (!socket || !isConnected || !idLogged) return;
+
+        console.log("Uniéndose a sala:", 0, "Usuario:", idLogged);
+        socket.emit("joinRoom", {
+            room: 0,
+            userId: Number(idLogged)
+        });
+
+        socket.on("jugadores_en_linea", data => {
+            console.log("Jugadores en línea:", data.jugadores);
+            setUsuariosEnLinea(data.jugadores);
+        });
+
+        socket.on('partidaRequest', data => {
+            console.log("Petición de partida recibida:", data);
+
+            // Solo mostrar si soy el jugador invitado
+            if (Number(data.player2Id) === Number(idLogged)) {
+                console.log(`${data.player1} te invitó a jugar. ID Partida: ${data.idPartida}`);
+                setJugador1Nombre(data.player1Name);
+                setJugador2Nombre(data.player2Name)
+                setJugador1Id(data.player1Id);
+                setJugador2Id(data.player2Id)
+                setIdPartida(data.idPartida);
+                setMostrarPopup(true); // ✅ Esto muestra el popup
+            }
+        });
+
+        return () => {
+            socket.emit("leaveRoom", { room: 0 });
+            socket.off("jugadores_en_linea");
+            socket.off("partidaRequest");
+        };
+    }, [socket, isConnected, idLogged]);
     useEffect(() => {
         if (usuariosEnLinea.length > 0) {
             jugadores();
         }
 
     }, [usuariosEnLinea])
+
+
     useEffect(() => {
         console.log("imagen elegida:", selectedImg);
         console.log("jugador elegido:", selectedPlayerId);
     }, [selectedImg][selectedPlayerId])
-    function crearPartida() {
+
+
+    /*function crearPartida() {
+        if (!socket || !isConnected || !selectedPlayerId || !selectedImg) {
+            alert("no seleccionaste nada")
+            return;
+        }
         const data = {
             jugador1: idLogged,
             jugador2: selectedPlayerId,
         }
+        const dataSocket = {
+            jugador1Nombre: usuario,
+            jugador1Id: idLogged,
+            jugador1Nombre: usuario,
+            jugador2Id: selectedPlayerId,
+            jugador2Nombre: selectedPlayerName
+        }
         //pasar los datos a la siguiente pagina
-
-        fetch('http://localhost:4000/crearPartida', {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data)
-        })
-            .then(response => response.json())
-            .then(response => {
-                if (response.res) {
-                    //socket emit un mensaje al otro jugador
-                    setIdPartida(response.idPartida)
-                } else {
-                    console.log("error")
-                }
+        try {
+            fetch('http://localhost:4000/crearPartida', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data)
             })
-        socket.emit("nuevaPartida", {
-            jugador1:data.jugador1,
-            jugador2:data.jugador2,
-            idPartida: idPartida
-        })
-        //cuando creas partida, se une al room de la partida
-        if (!socket || !isConnected || !idLogged) return;
-        socket.on("leaveRoom", {
-            room: 0
-        });
-        console.log("Uniéndose a sala:", idPartida, "Usuario:", idLogged);
-        socket.emit("joinRoom", {
-            room: idPartida,
-            userId: Number(idLogged)
-        });
-        //let url = "/partida?jugador1=" + idLogged+"&jugador2=" + selectedPlayerId + "&img1=" + selectedImg + "&img2=" + selectedImg2 + "idPartida=" + idPartida;
-        //router.push(url);
-        return () => {
-            socket.emit("leaveRoom", { room: idPartida });
+                .then(response => response.json())
+                .then(response => {
+                    if (response.res) {
+                        const nuevaPartidaId = response.idPartida
+                        //socket emit un mensaje al otro jugador
+                        setIdPartida(nuevaPartidaId)
+                        if (socket && isConnected) {
+                            socket.emit("nuevaPartida", {
+                                jugador1Nombre: dataSocket.jugador1Nombre,
+                                jugador2Nombre: dataSocket.jugador2Nombre,
+                                jugador1Id: dataSocket.jugador1Id,
+                                jugador2Id: dataSocket.jugador2Id,
+                                idPartida: idPartida
+                            })
+                            socket.emit("leaveRoom", { room: 0 });
+                            console.log("Uniéndose a sala:", idPartida, "Usuario:", idLogged);
+                            socket.emit("joinRoom", {
+                                room: nuevaPartidaId,
+                                userId: Number(idLogged)
+                            });
+                            console.log("Uniéndose a sala:", idPartida, "Usuario:", idLogged);
+                        }
+
+                    } else {
+                        console.log("Error al crear partida");
+                    }
+                })
+        } catch {
+            console.log("error")
+        }*/
+    async function crearPartida() {
+        if (!socket || !isConnected || !selectedPlayerId || !selectedImg) {
+            alert("no seleccionaste nada");
+            return;
+        }
+
+        const data = {
+            jugador1: idLogged,
+            jugador2: selectedPlayerId,
         };
+
+        try {
+            const response = await fetch('http://localhost:4000/crearPartida', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.res) {
+                const nuevaPartidaId = result.idPartida;
+                setIdPartida(nuevaPartidaId);
+
+                console.log("Partida creada con ID:", nuevaPartidaId);
+
+                if (socket && isConnected) {
+                    socket.emit("nuevaPartida", {
+                        jugador1Nombre: usuario,
+                        jugador2Nombre: selectedPlayerName,
+                        jugador1Id: idLogged,
+                        jugador2Id: selectedPlayerId,
+                        idPartida: nuevaPartidaId  // ✅ Usar el valor directo
+                    });
+
+                    socket.emit("leaveRoom", { room: 0 });
+                    socket.emit("joinRoom", {
+                        room: nuevaPartidaId,  // ✅ Usar el valor directo
+                        userId: Number(idLogged)
+                    });
+
+                    console.log("Unido a sala de partida:", nuevaPartidaId);
+                }
+            } else {
+                console.log("Error al crear partida");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        }
+
+
+        //cuando creas partida, se une al room de la partida
+        let url = "/partida?jugador1Id=" + idLogged + "&jugador1Nombre=" + usuario + "&jugador2Id=" + selectedPlayerId + "&jugador2Nombre=" + selectedPlayerName + "&img1=" + selectedImg + "&idPartida=" + idPartida;
+        router.push(url);
     }
-    function unirseAPartida(){
+    function unirseAPartida() {
         console.log("Uniendose a partida: ", idPartida)
+        let url = "/partida?jugador1Id=" + jugador1Id + "&jugador1Nombre=" + jugador1Nombre + "&jugador2Id=" + idLogged + "&jugador2Nombre=" + usuario + "&img2=" + selectedImg2 + "&idPartida=" + idPartida;
+        router.push(url);
     }
     function scores() {
 
@@ -167,7 +296,7 @@ export default function Login() {
                     }
                 })
         }
-    
+     
     }*/
     async function jugadores() {
         const usuariosCompletos = [];
@@ -224,6 +353,7 @@ export default function Login() {
                                 <h2 className={styles.titulo}>Crear partida</h2>
                                 <h2 className={styles.text}>Elegí uno de los jugadores en línea:</h2>
                                 <select onChange={(e) => setSelectedPlayerId(e.target.value)} className={styles.selectJugador}>
+                                    <option className={styles.option} key={0} value={0}>Sin seleccionar</option>
                                     {nombresEnLinea.length > 1 ? (
                                         nombresEnLinea.map((nombre) => {
                                             if (nombre.id !== Number(idLogged)) {
@@ -252,8 +382,8 @@ export default function Login() {
 
                             </div>
 
-                            <div className={styles.botonCrearPartida}>
-                                <button onClick={crearPartida}>crear partida</button>
+                            <div className={styles.crearP}>
+                                <button className={styles.botonCrearPartida} onClick={crearPartida}>crear partida</button>
                             </div>
                         </PopUp>
                     </div>
@@ -271,8 +401,23 @@ export default function Login() {
 
                 }}
             >
-                <h2>{jugador2} te está invitando a una partida!</h2>
-                <boton className={styles.botonAceptar} onClick={unirseAPartida}>Aceptar</boton>
+                <h2 className={styles.text}>¡{jugador1Nombre} te está invitando a una partida!</h2>
+                <div className={styles.personajes}>
+                    {personajes.map((personaje, index) => (
+                        <button
+                            key={index}
+                            onClick={() => setSelectedImg2(personaje)}
+                            className={`${styles.botonFoto} ${selectedImg2 === personaje ? styles.selected : ''}`}
+                        >
+                            <img
+                                src={personaje}
+                                alt={`Personaje ${index}`}
+                                className={styles.personaje}
+                            />
+                        </button>
+                    ))}
+                </div>
+                <button className={styles.botonAceptar} onClick={unirseAPartida}>Aceptar</button>
             </PopUp>
 
 
@@ -282,7 +427,6 @@ export default function Login() {
         </>
 
     )
-
 }
 /* <div className={styles.personajes}>
     {personajes.map((personaje, index) => (
