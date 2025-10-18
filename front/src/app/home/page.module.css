@@ -25,3 +25,60 @@
     flex-direction: row;
     justify-content:space-around;
 }
+
+.selectJugador {
+    font-size: 1.2rem;
+    padding: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+    border-radius: 1rem;
+    border: 2px solid #0c7272;
+    background-color: #f0f8f8; /* Color de fondo claro */
+    color: #0c7272; /* Color del texto */
+    cursor: pointer;
+    width: 100%;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.selectJugador:hover {
+    border-color: #0a5555;
+    background-color: #e0f0f0;
+}
+
+.selectJugador:focus {
+    border-color: #0c7272;
+    box-shadow: 0 0 0 3px rgba(12, 114, 114, 0.2);
+}
+
+.option {
+    font-size: 1.2rem;
+    padding: 0.5rem;
+    background-color: white;
+    color: #0c7272;
+}
+.text {
+    color: #0c7272;
+}
+
+.botonCrearPartida {
+    text-align: right;
+    margin-bottom: 1rem;
+}
+
+.titulo{
+    font-size: 2rem;
+    font-weight: bold;
+    color:black;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: rgb(183, 183, 183) 0.1rem solid;
+}
+
+.personaje{
+    height: 5rem;
+    width: auto;
+    border-radius: 3rem;
+    border: black 0.1rem solid;
+    margin: 0.3rem;
+}

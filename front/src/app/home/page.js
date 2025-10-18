@@ -6,6 +6,7 @@ import Input from "@/components/Input";
 import { useSearchParams } from "next/navigation";
 import styles from "@/app/home/page.module.css";
 import { useSocket } from "../hooks/useSocket";
+import Image from 'next/image';
 import PopUp from "@/components/PopUp";
 
 export default function Login() {
@@ -16,6 +17,25 @@ export default function Login() {
     const { socket, isConnected } = useSocket();
     const [usuariosEnLinea, setUsuariosEnLinea] = useState([]);
     const [nombresEnLinea, setNombresEnLinea] = useState([]);
+    const personajes = [
+        "/imagenes/pablo.jpg",
+         "/imagenes/flandua.jpg",
+        "/imagenes/benchi.jpg",
+        "/imagenes/bergondi.jpg",
+        "/imagenes/brendix.jpg",
+        "/imagenes/sturla.jpg",
+        "/imagenes/santi.jpg",
+        "/imagenes/caro.jpg",
+        "/imagenes/rivas.jpg",
+        "/imagenes/estrella.jpg",
+        "/imagenes/calamardo.jpg",
+        "/imagenes/caracol.jpg",
+        "/imagenes/bob.jpg",
+        "/imagenes/ardilla.jpg",
+        "/imagenes/cangrejo.jpg",
+        "/imagenes/bichito.jpg"
+       
+    ]
 
     useEffect(() => {
         if (!socket || !isConnected || !idLogged) return;
@@ -81,7 +101,7 @@ export default function Login() {
                     }
                 })
         }
-
+    
     }*/
     async function jugadores() {
         const usuariosCompletos = [];
@@ -135,18 +155,28 @@ export default function Login() {
                     <div>
                         <PopUp boton={<button className={styles.boton} onClick={crearPartida}>Crear partida</button>}>
                             <div className={styles.crearPartidaPopup}>
-                                <h1>Crear partida</h1>
-                                <h2>Elige uno de los jugadores en línea:</h2>
-                                <select>
-                                    {usuariosEnLinea.length != 0 ? (
-                                        usuariosEnLinea.map((usuarioId) => {
-                                            if (usuarioId !== Number(idLogged)) {
-                                                return (<option key={usuarioId} value={usuarioId}>Jugador {usuarioId}</option>)
+                                <h2 className={styles.titulo}>Crear partida</h2>
+                                <h2 className={styles.text}>Elegí uno de los jugadores en línea:</h2>
+                                <select className={styles.selectJugador}>
+                                    {nombresEnLinea.length > 1 ? (
+                                        nombresEnLinea.map((nombre) => {
+                                            if (nombre.id !== Number(idLogged)) {
+                                                return (<option className={styles.option} key={nombre.id} value={nombre.id}>{nombre.nombre}</option>)
                                             }
                                         }
                                         )
-                                    ) : <option>No hay jugadores en línea</option>}
+                                    ) : <option className={styles.option}>No hay jugadores en línea</option>}
                                 </select>
+                                <h2 className={styles.text}>Elegí un personaje:</h2>
+                                <div className={styles.personajes}>
+                                    {personajes.map((personaje, index) => (
+                                        <img src={personaje} key={index} className={styles.personaje} />
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className={styles.botonCrearPartida}>
+                                <Button text="crear partida"></Button>
                             </div>
                         </PopUp>
                     </div>
@@ -154,7 +184,7 @@ export default function Login() {
                         <button className={styles.boton}>Ver puntajes</button>
                     </div>
                 </div >
-                <h2>{nombresEnLinea}</h2>
+
             </section >
 
 
