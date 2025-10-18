@@ -1,8 +1,12 @@
 'use client'
 import {useEffect, useState} from "react";
 import { useSearchParams } from "next/navigation";
+import { useSocket } from "../hooks/useSocket";
+import Image from 'next/image';
+import PopUp from "@/components/PopUp";
 
 export default function pagina(){
+    const { socket, isConnected } = useSocket();
     const searchParams = useSearchParams();
     const nombre1 = searchParams.get("jugador1Nombre")
     const nombre2 = searchParams.get("jugador2Nombre")

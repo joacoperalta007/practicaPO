@@ -135,7 +135,14 @@ export default function Home() {
                 setMostrarPopup(true); // ✅ Esto muestra el popup
             }
         });
-
+        socket.on("recibir_imagen", data=>{
+            console.log("recibiendo imagen: ")
+            if(!selectedImg){
+                setSelectedImg(data.imagen)
+            }else{
+                setSelectedImg2(data.imagen)
+            }
+        })
         return () => {
             socket.emit("leaveRoom", { room: 0 });
             socket.off("jugadores_en_linea");
@@ -263,15 +270,28 @@ export default function Home() {
             console.error("Error:", error);
         }
 
-
+        socket.emit("enviar_imagen",{
+            room: idPartida,
+            imagen: selectedImg
+        })
         //cuando creas partida, se une al room de la partida
-        let url = "/partida?jugador1Id=" + idLogged + "&jugador1Nombre=" + usuario + "&jugador2Id=" + selectedPlayerId + "&jugador2Nombre=" + selectedPlayerName + "&img1=" + selectedImg + "&idPartida=" + idPartida;
+        let url = "/partida?idLogged=" + idLogged + "&jugador1Id=" + idLogged + "&jugador1Nombre=" + usuario + "&jugador2Id=" + selectedPlayerId + "&jugador2Nombre=" + selectedPlayerName + "&img1=" + selectedImg + "&img2=" + selectedImg2 + "&idPartida=" + idPartida;
         router.push(url);
     }
     function unirseAPartida() {
         console.log("Uniendose a partida: ", idPartida)
-        let url = "/partida?jugador1Id=" + jugador1Id + "&jugador1Nombre=" + jugador1Nombre + "&jugador2Id=" + idLogged + "&jugador2Nombre=" + usuario + "&img2=" + selectedImg2 + "&idPartida=" + idPartida;
+        socket.emit("enviar_imagen",{
+            room: idPartida,
+            imagen: selectedImg2
+            
+        })
+        let url = "/partida?idLogged=" + idLogged + "&jugador1Id=" + jugador1Id + "&jugador1Nombre=" + jugador1Nombre + "&jugador2Id=" + idLogged + "&jugador2Nombre=" + usuario + "&img2=" + selectedImg2 + "&img1=" + selectedImg + "&idPartida=" + idPartida;
+        while(!selectedImg && !selectedImg2){
+            console.log("no selecciono el otro usuario todavia")
+        }
         router.push(url);
+            
+                
     }
     function scores() {
 

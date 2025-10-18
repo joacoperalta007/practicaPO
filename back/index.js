@@ -13,7 +13,7 @@ var port = process.env.PORT || 4000;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002","http://localhost:3003"],
+  origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003"],
   credentials: true
 }));
 
@@ -25,7 +25,7 @@ const server = app.listen(port, () => {
 
 const io = require('socket.io')(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:3001","http://localhost:3002","http://localhost:3003"],
+    origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
   }
@@ -143,7 +143,7 @@ app.post('/crearPartida', async function (req, res) {
     `);
 
     const idPartida = resultado.insertId;
-    
+
     console.log("ID partida creada:", idPartida);
 
     // Insertar jugadores en la partida
@@ -177,7 +177,7 @@ app.put('/cambiarNombre', async function (req, res) {
   try {
     console.log(req.body)
     await realizarQuery(` UPDATE Jugadores SET nombre = '${req.body.nombre}' WHERE id_jugador = ${req.body.id_jugador}`);
-    res.send({ res: true});
+    res.send({ res: true });
   } catch (error) {
     console.error("Error en /cambiarNombre:", error);
     res.send({ res: false, mensaje: "Error al actualizar el nombre" });
@@ -226,7 +226,7 @@ io.on("connection", (socket) => {
       }
 
       console.log("Salió de sala:", req.session.room);
-      
+
     }
 
     // Guardar la sala y el usuario en la sesión
@@ -252,16 +252,23 @@ io.on("connection", (socket) => {
   socket.on('nuevaPartida', async data => {
     console.log("jugador emisor: " + data.jugador1);
     console.log("jugador receptor: " + data.jugador2);
-    
+
     // Emitir a toda la sala 0 (sala de espera)
     io.to(0).emit('partidaRequest', {
-        player2Id: data.jugador2Id,
-        player1Id: data.jugador1Id,
-        player1Name: data.jugador1Nombre,
-        player2Name: data.jugador2Nombre,
-        idPartida: data.idPartida
+      player2Id: data.jugador2Id,
+      player1Id: data.jugador1Id,
+      player1Name: data.jugador1Nombre,
+      player2Name: data.jugador2Nombre,
+      idPartida: data.idPartida
     });
-});
+  });
+  socket.on('enviar_imagen', async data=> {
+    console.log("Enviando imagen: ",data.imagen);
+
+    io.to(data.room).emit('recibir_imagen', {
+      imagen: data.imagen,
+    });
+  })
   // Cuando se envía un mensaje
 
   // Opcional: Para salir de una sala
