@@ -126,7 +126,7 @@ app.post('/crearPartida', async function (req, res) {
       WHERE j.id_jugador IN (${req.body.jugador1}, ${req.body.jugador2})
     `);
 
-    res.send({ res: true, idPartida });
+    res.send({ res: true, idPartida: idPartida });
   } catch (error) {
     console.error("Error en /crearPartida:", error);
     res.send({ res: false, message: "Error creando la partida." });
@@ -220,11 +220,18 @@ io.on("connection", (socket) => {
 
     req.session.save();
   })
-
   //socket.join('global');
   socket.on('nuevaPartida', async data => {
-    console.log("")
-  })
+    console.log("jugador emisor: " + data.jugador1);
+    console.log("jugador receptor: " + data.jugador2);
+    
+    // Emitir a toda la sala 0 (sala de espera)
+    io.to(0).emit('partidaRequest', {
+        player2: data.jugador2,
+        player1: data.jugador1,
+        idPartida: data.idPartida
+    });
+});
   // Cuando se envía un mensaje
 
   // Opcional: Para salir de una sala

@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import Button from "@/components/Boton";
 import Input from "@/components/Input";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import styles from "@/app/home/page.module.css";
 import { useSocket } from "../hooks/useSocket";
 import Image from 'next/image';
@@ -17,9 +17,17 @@ export default function Login() {
     const { socket, isConnected } = useSocket();
     const [usuariosEnLinea, setUsuariosEnLinea] = useState([]);
     const [nombresEnLinea, setNombresEnLinea] = useState([]);
+    const [selectedImg, setSelectedImg] = useState(null);
+    const [selectedPlayerId, setSelectedPlayerId] = useState(null);
+    const [partidaRequest, setPartidaRequest] = useState(false);
+    const [mostrarPopup, setMostrarPopup] = useState(false);
+    const router = useRouter();
+    const [jugador2, setJugador2] = useState("")
+    const [jugador1, setJugador1] = useState("")
+
     const personajes = [
         "/imagenes/pablo.jpg",
-         "/imagenes/flandua.jpg",
+        "/imagenes/flandua.jpg",
         "/imagenes/benchi.jpg",
         "/imagenes/bergondi.jpg",
         "/imagenes/brendix.jpg",
@@ -34,9 +42,23 @@ export default function Login() {
         "/imagenes/ardilla.jpg",
         "/imagenes/cangrejo.jpg",
         "/imagenes/bichito.jpg"
-       
-    ]
 
+    ]
+    useEffect(() => {
+        if(!socket || !isConnected || !idLogged)return;
+        socket.on("partidaRequest", data => {
+            console.log("Solicitu de partida recibida de:", data.jugador1);
+            setPartidaRequest(true);
+            setJugador1(data.jugador1);
+            setJugador2(data.jugador2);
+            setIdPartida(data.idPartida);
+        });
+    })
+    useEffect(() => {
+        if (partidaRequest == true) {
+            setMostrarPopup(true);
+        }
+    }, [partidaRequest]);
     useEffect(() => {
         if (!socket || !isConnected || !idLogged) return;
 
@@ -50,6 +72,17 @@ export default function Login() {
             setUsuariosEnLinea(data.jugadores);
             console.log("Usuarios en línea actualizados:", data.jugadores);
         });
+        
+        socket.on('partidaRequest', data => {
+            console.log("Petición de partida recibida:", data);
+
+            // Solo mostrar si soy el jugador invitado
+            if (Number(data.player2) === Number(idLogged)) {
+                // Mostrar popup de invitación
+                console.log(`${data.player1} te invitó a jugar. ID Partida: ${data.idPartida}`);
+                // Aquí abrís tu popup
+            }
+        });
         return () => {
             socket.emit("leaveRoom", { room: 0 });
         };
@@ -60,24 +93,57 @@ export default function Login() {
         }
 
     }, [usuariosEnLinea])
+    useEffect(() => {
+        console.log("imagen elegida:", selectedImg);
+        console.log("jugador elegido:", selectedPlayerId);
+    }, [selectedImg][selectedPlayerId])
     function crearPartida() {
+        const data = {
+            jugador1: idLogged,
+            jugador2: selectedPlayerId,
+        }
+        //pasar los datos a la siguiente pagina
 
-        //fetch('crearPartida')
-
+        fetch('http://localhost:4000/crearPartida', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(response => {
+                if (response.res) {
+                    //socket emit un mensaje al otro jugador
+                    setIdPartida(response.idPartida)
+                } else {
+                    console.log("error")
+                }
+            })
+        socket.emit("nuevaPartida", {
+            jugador1:data.jugador1,
+            jugador2:data.jugador2,
+            idPartida: idPartida
+        })
         //cuando creas partida, se une al room de la partida
         if (!socket || !isConnected || !idLogged) return;
-
+        socket.on("leaveRoom", {
+            room: 0
+        });
         console.log("Uniéndose a sala:", idPartida, "Usuario:", idLogged);
         socket.emit("joinRoom", {
             room: idPartida,
             userId: Number(idLogged)
         });
-
+        //let url = "/partida?jugador1=" + idLogged+"&jugador2=" + selectedPlayerId + "&img1=" + selectedImg + "&img2=" + selectedImg2 + "idPartida=" + idPartida;
+        //router.push(url);
         return () => {
             socket.emit("leaveRoom", { room: idPartida });
         };
     }
-
+    function unirseAPartida(){
+        console.log("Uniendose a partida: ", idPartida)
+    }
     function scores() {
 
     }
@@ -157,7 +223,7 @@ export default function Login() {
                             <div className={styles.crearPartidaPopup}>
                                 <h2 className={styles.titulo}>Crear partida</h2>
                                 <h2 className={styles.text}>Elegí uno de los jugadores en línea:</h2>
-                                <select className={styles.selectJugador}>
+                                <select onChange={(e) => setSelectedPlayerId(e.target.value)} className={styles.selectJugador}>
                                     {nombresEnLinea.length > 1 ? (
                                         nombresEnLinea.map((nombre) => {
                                             if (nombre.id !== Number(idLogged)) {
@@ -170,13 +236,24 @@ export default function Login() {
                                 <h2 className={styles.text}>Elegí un personaje:</h2>
                                 <div className={styles.personajes}>
                                     {personajes.map((personaje, index) => (
-                                        <img src={personaje} key={index} className={styles.personaje} />
+                                        <button
+                                            key={index}
+                                            onClick={() => setSelectedImg(personaje)}
+                                            className={`${styles.botonFoto} ${selectedImg === personaje ? styles.selected : ''}`}
+                                        >
+                                            <img
+                                                src={personaje}
+                                                alt={`Personaje ${index}`}
+                                                className={styles.personaje}
+                                            />
+                                        </button>
                                     ))}
                                 </div>
+
                             </div>
 
                             <div className={styles.botonCrearPartida}>
-                                <Button text="crear partida"></Button>
+                                <button onClick={crearPartida}>crear partida</button>
                             </div>
                         </PopUp>
                     </div>
@@ -186,7 +263,17 @@ export default function Login() {
                 </div >
 
             </section >
+            <PopUp
+                open={mostrarPopup}
+                tipo={null}
+                onClose={() => {
+                    setMostrarPopup(false);
 
+                }}
+            >
+                <h2>{jugador2} te está invitando a una partida!</h2>
+                <boton className={styles.botonAceptar} onClick={unirseAPartida}>Aceptar</boton>
+            </PopUp>
 
 
 
@@ -197,3 +284,7 @@ export default function Login() {
     )
 
 }
+/* <div className={styles.personajes}>
+    {personajes.map((personaje, index) => (
+        <button key={index} onClick={() => setSelectedImg(personaje)} className={styles.botonFoto}><img src={personaje} key={index} className={styles.personaje} /></button>
+    ))}</div>*/

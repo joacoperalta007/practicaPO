@@ -75,10 +75,39 @@
     border-bottom: rgb(183, 183, 183) 0.1rem solid;
 }
 
-.personaje{
-    height: 5rem;
+.personaje {
+    height: 4.9rem;
     width: auto;
     border-radius: 3rem;
     border: black 0.1rem solid;
     margin: 0.3rem;
+    display: block;
 }
+
+.personajes{
+    padding-top:1rem;
+    margin-bottom:1rem;
+}
+
+
+
+.botonFoto {
+    background: none;
+    border: 3px solid transparent;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 3rem;
+}
+
+.botonFoto:hover {
+    transform: scale(1.1);
+    border-color: #0c7272;
+}
+
+.botonFoto.selected {
+    border-color: #0c7272;
+    background-color: rgba(12, 114, 114, 0.3);
+    box-shadow: 0 0 15px rgba(12, 114, 114, 0.6);
+}
+
