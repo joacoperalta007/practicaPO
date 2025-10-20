@@ -135,11 +135,11 @@ export default function Home() {
                 setMostrarPopup(true); // ✅ Esto muestra el popup
             }
         });
-        socket.on("recibir_imagen", data=>{
+        socket.on("recibir_imagen", data => {
             console.log("recibiendo imagen: ")
-            if(!selectedImg){
+            if (!selectedImg) {
                 setSelectedImg(data.imagen)
-            }else{
+            } else {
                 setSelectedImg2(data.imagen)
             }
         })
@@ -270,7 +270,7 @@ export default function Home() {
             console.error("Error:", error);
         }
 
-        socket.emit("enviar_imagen",{
+        socket.emit("enviar_imagen", {
             room: idPartida,
             imagen: selectedImg
         })
@@ -280,18 +280,18 @@ export default function Home() {
     }
     function unirseAPartida() {
         console.log("Uniendose a partida: ", idPartida)
-        socket.emit("enviar_imagen",{
+        socket.emit("enviar_imagen", {
             room: idPartida,
             imagen: selectedImg2
-            
+
         })
         let url = "/partida?idLogged=" + idLogged + "&jugador1Id=" + jugador1Id + "&jugador1Nombre=" + jugador1Nombre + "&jugador2Id=" + idLogged + "&jugador2Nombre=" + usuario + "&img2=" + selectedImg2 + "&img1=" + selectedImg + "&idPartida=" + idPartida;
-        while(!selectedImg && !selectedImg2){
+        while (!selectedImg && !selectedImg2) {
             console.log("no selecciono el otro usuario todavia")
         }
         router.push(url);
-            
-                
+
+
     }
     function scores() {
 
@@ -369,20 +369,24 @@ export default function Home() {
                 <div className={styles.contenedor}>
                     <div>
                         <PopUp boton={<button className={styles.boton} onClick={crearPartida}>Crear partida</button>}>
-                            <div className={styles.crearPartidaPopup}>
-                                <h2 className={styles.titulo}>Crear partida</h2>
-                                <h2 className={styles.text}>Elegí uno de los jugadores en línea:</h2>
-                                <select onChange={(e) => setSelectedPlayerId(e.target.value)} className={styles.selectJugador}>
-                                    <option className={styles.option} key={0} value={0}>Sin seleccionar</option>
-                                    {nombresEnLinea.length > 1 ? (
-                                        nombresEnLinea.map((nombre) => {
-                                            if (nombre.id !== Number(idLogged)) {
-                                                return (<option className={styles.option} key={nombre.id} value={nombre.id}>{nombre.nombre}</option>)
+                            <div className={styles.crearPartidaPopup1}>
+                                <div className={styles.parte1}>
+                                    <h2 className={styles.titulo}>Crear partida</h2>
+                                    <h2 className={styles.text}>Elegí uno de los jugadores en línea:</h2>
+                                    <select onChange={(e) => setSelectedPlayerId(e.target.value)} className={styles.selectJugador}>
+                                        <option className={styles.option} key={0} value={0}>Sin seleccionar</option>
+                                        {nombresEnLinea.length > 1 ? (
+                                            nombresEnLinea.map((nombre) => {
+                                                if (nombre.id !== Number(idLogged)) {
+                                                    return (<option className={styles.option} key={nombre.id} value={nombre.id}>{nombre.nombre}</option>)
+                                                }
                                             }
-                                        }
-                                        )
-                                    ) : <option className={styles.option}>No hay jugadores en línea</option>}
-                                </select>
+                                            )
+                                        ) : <option className={styles.option}>No hay jugadores en línea</option>}
+                                    </select>
+                                </div>
+                            </div>
+                            <div className={styles.crearPartidaPopup2}>
                                 <h2 className={styles.text}>Elegí un personaje:</h2>
                                 <div className={styles.personajes}>
                                     {personajes.map((personaje, index) => (
@@ -399,12 +403,13 @@ export default function Home() {
                                         </button>
                                     ))}
                                 </div>
+                                <div className={styles.crearP}>
+                                    <button className={styles.botonCrearPartida} onClick={crearPartida}>crear partida</button>
+                                </div>
 
                             </div>
 
-                            <div className={styles.crearP}>
-                                <button className={styles.botonCrearPartida} onClick={crearPartida}>crear partida</button>
-                            </div>
+
                         </PopUp>
                     </div>
                     <div>
