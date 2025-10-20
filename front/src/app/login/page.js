@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/Boton";
 import Input from "@/components/Input";
 import styles from "@/app/login/page.module.css"
-import { useRouter } from "next/navigation";
+import PopUp from "@/components/PopUp";
+
 
 export default function Login() {
     const [contraseña, setContraseña] = useState("");
@@ -14,6 +15,15 @@ export default function Login() {
     const [mostrar, setMostrar] = useState("false");
     const [mail, setMail] = useState("false");
     const router = useRouter();
+    const [mostrarPopup, setMostrarPopup] = useState(false);
+    const [inicio, setInicio] = useState(0);
+
+    // Cuando quieras activar el popup
+    useEffect(() => {
+        if (inicio === 1 || inicio === 2 || inicio === 3) {
+            setMostrarPopup(true);
+        }
+    }, [inicio]);
 
     function guardarContraseña(event) {
         setContraseña(event.target.value);
@@ -43,7 +53,6 @@ export default function Login() {
         setMail(event.target.value);
     }
 
-    //hay que hacer un componente popup para que quede mejor que el alert que queda re croto
     async function login() {
         let data = {
             user: user,
@@ -61,18 +70,43 @@ export default function Login() {
             .then(response => {
                 if (response.res) {
                     console.log(response)
-                    //popup no alert
-                    alert("Ingresaste con exito");
-                    let url = "/home?idLogged=" + response.idLogged + "&user=" + user
-                    router.push(url);
+                    setInicio(1);
+                    // Redirigir después de un delay
+                    setTimeout(() => {
+                        let url = "/home?idLogged=" + response.idLogged + "&user=" + user
+                        router.push(url);
+                    }, 2000); // 2 segundos para ver el mensaje
                 } else {
-                    //popup no alert
-                    alert("Número de teléfono o contraseña incorrectos");
-
+                    setInicio(3);
                 }
             })
-
     }
+    /*async function register() {
+        let data = {
+            nombre: nombre,
+            contraseña: contraseña,
+            email: mail,
+            user: user
+        };
+
+        fetch('http://localhost:4000/register', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(response => {
+                if (response.res) {
+                    setInicio(1);
+                    let url = "/home?idLogged=" + response.idLogged + "&user=" + user;
+                    router.push(url)
+                } else {
+                    setInicio(2);
+                }
+            })
+    }*/
     async function register() {
         let data = {
             nombre: nombre,
@@ -91,12 +125,14 @@ export default function Login() {
             .then(response => response.json())
             .then(response => {
                 if (response.res) {
-                    //popup no alert
-                    alert("Cuenta creada con exito");
-                    router.push("/home?idLogged=${response.idLogged}&user=${user}");
+                    setInicio(1);
+                    // Redirigir después de un delay
+                    setTimeout(() => {
+                        let url = "/home?idLogged=" + response.idLogged + "&user=" + user;
+                        router.push(url)
+                    }, 2000); // 2 segundos para ver el mensaje
                 } else {
-                    //popup no alert
-                    alert("El usuario ya existe");
+                    setInicio(2);
                 }
             })
     }
@@ -105,11 +141,11 @@ export default function Login() {
     function irRegister() {
         setMostrar(!mostrar)
     }
-
+    //<Button onClick={login} text="Iniciar sesion"></Button>
     return (
         <>
             <div className={styles.contenedor}>
-                <h2>Iniciar sesioón</h2>
+                <h2>Iniciar sesión</h2>
                 <br></br>
                 <h3>Ingrese su nombre de usuario: </h3>
                 <Input onChange={guardarUser}></Input>
@@ -144,11 +180,35 @@ export default function Login() {
                     <Input onChange={guardarContraseña2} type={"password"}></Input>
                     <br></br>
                     <br></br>
-
-                    <Button onClick={register} text="Registrarse"></Button>
+                    <div className={styles.boton2}>
+                        <Button onClick={register} text="registrarse"></Button>
+                    </div>
                 </div>
 
-            )}</>
+            )}
+            <PopUp
+                open={mostrarPopup}
+                tipo={inicio}
+                onClose={() => {
+                    setMostrarPopup(false);
+                    setInicio(0);
+                }}
+            >
+                {inicio === 1 ? (
+                    <div>
+                        <h1>¡Ingresaste con éxito!</h1>
+                    </div>
+                ) : inicio === 2 ? (
+                    <div>
+                        <h1>El usuario ya existe, vuelve a intentarlo.</h1>
+                    </div>
+                ) : inicio === 3 ? (
+                    <div>
+                        <h1>Usuario o contraseña incorrectos.</h1>
+                    </div>
+                ) : null}
+            </PopUp>
+        </>
     )
 
 
