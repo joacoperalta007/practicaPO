@@ -118,29 +118,6 @@ app.post('/crearPartida', async function (req, res) {
   }
 });
 
-
-app.delete('/eliminarJugador', async function (req, res) {
-  try {
-    console.log(req.body)
-    await realizarQuery(`DELETE FROM Jugadores WHERE id_jugador = ${req.body.id_jugador}`)
-    res.send({ res: true})
-  } catch (error) {
-    console.error("Error en /eliminarJugador:", error);
-    res.send({ res: false, message: "Error eliminando el jugador." });
-  }
-})
-
-app.put('/cambiarNombre', async function (req, res) {
-  try {
-    console.log(req.body)
-    await realizarQuery(` UPDATE Jugadores SET nombre = '${req.body.nombre}' WHERE id_jugador = ${req.body.id_jugador}`);
-    res.send({ res: true});
-  } catch (error) {
-    console.error("Error en /cambiarNombre:", error);
-    res.send({ res: false, mensaje: "Error al actualizar el nombre" });
-  }
-});
-
 app.post('/agregarBarco', async function (req, res) {
   try {
     console.log(req.body);
@@ -184,6 +161,27 @@ app.post('/disparo', async function (req, res) {
 });
 
 
+app.delete('/eliminarJugador', async function (req, res) {
+  try {
+    console.log(req.body)
+    await realizarQuery(`DELETE FROM Jugadores WHERE id_jugador = ${req.body.id_jugador}`)
+    res.send({ res: true})
+  } catch (error) {
+    console.error("Error en /eliminarJugador:", error);
+    res.send({ res: false, message: "Error eliminando el jugador." });
+  }
+})
+
+app.put('/cambiarNombre', async function (req, res) {
+  try {
+    console.log(req.body)
+    await realizarQuery(` UPDATE Jugadores SET nombre = '${req.body.nombre}' WHERE id_jugador = ${req.body.id_jugador}`);
+    res.send({ res: true});
+  } catch (error) {
+    console.error("Error en /cambiarNombre:", error);
+    res.send({ res: false, mensaje: "Error al actualizar el nombre" });
+  }
+});
 
 app.get('/historialPartidas', async function (req, res) {
   try {
@@ -195,7 +193,6 @@ app.get('/historialPartidas', async function (req, res) {
     res.send({ res: false, message: "Error obteniendo el historial de partidas." });
   }
 });
-
 
 let jugadoresEnLinea = []
 
