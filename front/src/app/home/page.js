@@ -79,34 +79,7 @@ export default function Home() {
             setMostrarPopup(true);
         }
     }, [partidaRequest]);
-    /*useEffect(() => {
-        if (!socket || !isConnected || !idLogged) return;
 
-        console.log("Uniéndose a sala:", 0, "Usuario:", idLogged);
-        socket.emit("joinRoom", {
-            room: 0,
-            userId: Number(idLogged)
-        });
-        socket.on("jugadores_en_linea", data => {
-            console.log("Jugadores en línea:", data.jugadores);
-            setUsuariosEnLinea(data.jugadores);
-            console.log("Usuarios en línea actualizados:", data.jugadores);
-        });
-
-        socket.on('partidaRequest', data => {
-            console.log("Petición de partida recibida:", data);
-
-            // Solo mostrar si soy el jugador invitado
-            if (Number(data.player2) === Number(idLogged)) {
-                // Mostrar popup de invitación
-                console.log(`${data.player1} te invitó a jugar. ID Partida: ${data.idPartida}`);
-                // Aquí abrís tu popup
-            }
-        });
-        return () => {
-            socket.emit("leaveRoom", { room: 0 });
-        };
-    }, [socket, isConnected, idLogged])*/
     useEffect(() => {
         if (!socket || !isConnected || !idLogged) return;
 
@@ -123,24 +96,23 @@ export default function Home() {
 
         socket.on('partidaRequest', data => {
             console.log("Petición de partida recibida:", data);
-
+            console.log(`${data.player1} te invitó a jugar. ID Partida: ${data.idPartida}`);
+            setJugador2Nombre(data.player2Name)
+            setJugador2Id(data.player2Id)
+            setIdPartida(data.idPartida);
             // Solo mostrar si soy el jugador invitado
             if (Number(data.player2Id) === Number(idLogged)) {
-                console.log(`${data.player1} te invitó a jugar. ID Partida: ${data.idPartida}`);
-                setJugador1Nombre(data.player1Name);
-                setJugador2Nombre(data.player2Name)
-                setJugador1Id(data.player1Id);
-                setJugador2Id(data.player2Id)
-                setIdPartida(data.idPartida);
                 setMostrarPopup(true); // ✅ Esto muestra el popup
             }
         });
         socket.on("recibir_imagen", data => {
             console.log("recibiendo imagen: ")
-            if (!selectedImg) {
+            if (data.playerId == jugador1Id) {
                 setSelectedImg(data.imagen)
-            } else {
+                console.log(selectedImg)
+            } else if(data.playerId == jugador2Id){
                 setSelectedImg2(data.imagen)
+                console.log(selectedImg2)
             }
         })
         return () => {
@@ -156,7 +128,16 @@ export default function Home() {
 
     }, [usuariosEnLinea])
 
+    useEffect(() => {
+        if (selectedImg != undefined && selectedImg2 != undefined) {
+            let url = "/partida?idLogged=" + idLogged + "&jugador1Id=" + jugador1Id + "&jugador1Nombre="
+                + jugador1Nombre + "&jugador2Id=" +
+                jugador2Id + "&jugador2Nombre=" + jugador2Nombre + "&img1="
+                + selectedImg + "&img2=" + selectedImg2 + "&idPartida=" + idPartida;
+            router.push(url)
+        }
 
+    }, [selectedImg, selectedImg2])
     useEffect(() => {
         console.log("imagen elegida:", selectedImg);
         console.log("jugador elegido:", selectedPlayerId);
@@ -243,7 +224,9 @@ export default function Home() {
             if (result.res) {
                 const nuevaPartidaId = result.idPartida;
                 setIdPartida(nuevaPartidaId);
-
+                setJugador1Id(idLogged);
+                setJugador2Id(selectedPlayerId);
+                setJugador1Nombre(usuario)
                 console.log("Partida creada con ID:", nuevaPartidaId);
 
                 if (socket && isConnected) {
@@ -272,24 +255,26 @@ export default function Home() {
 
         socket.emit("enviar_imagen", {
             room: idPartida,
-            imagen: selectedImg
+            imagen: selectedImg,
+            jugadorId: idLogged
         })
         //cuando creas partida, se une al room de la partida
-        let url = "/partida?idLogged=" + idLogged + "&jugador1Id=" + idLogged + "&jugador1Nombre=" + usuario + "&jugador2Id=" + selectedPlayerId + "&jugador2Nombre=" + selectedPlayerName + "&img1=" + selectedImg + "&img2=" + selectedImg2 + "&idPartida=" + idPartida;
-        router.push(url);
+        //let url = "/partida?idLogged=" + idLogged + "&jugador1Id=" + idLogged + "&jugador1Nombre=" + usuario + "&jugador2Id=" + selectedPlayerId + "&jugador2Nombre=" + selectedPlayerName + "&img1=" + selectedImg + "&img2=" + selectedImg2 + "&idPartida=" + idPartida;
+        //router.push(url);
     }
     function unirseAPartida() {
         console.log("Uniendose a partida: ", idPartida)
+        socket.emit("join_room", {
+            userId: idLogged,
+            room: idPartida
+        })
         socket.emit("enviar_imagen", {
             room: idPartida,
-            imagen: selectedImg2
-
+            imagen: selectedImg2,
+            jugadorId: idLogged
         })
-        let url = "/partida?idLogged=" + idLogged + "&jugador1Id=" + jugador1Id + "&jugador1Nombre=" + jugador1Nombre + "&jugador2Id=" + idLogged + "&jugador2Nombre=" + usuario + "&img2=" + selectedImg2 + "&img1=" + selectedImg + "&idPartida=" + idPartida;
-        while (!selectedImg && !selectedImg2) {
-            console.log("no selecciono el otro usuario todavia")
-        }
-        router.push(url);
+        //let url = "/partida?idLogged=" + idLogged + "&jugador1Id=" + jugador1Id + "&jugador1Nombre=" + jugador1Nombre + "&jugador2Id=" + idLogged + "&jugador2Nombre=" + usuario + "&img2=" + selectedImg2 + "&img1=" + selectedImg + "&idPartida=" + idPartida;
+        //router.push(url);
 
 
     }
@@ -426,7 +411,11 @@ export default function Home() {
 
                 }}
             >
-                <h2 className={styles.text}>¡{jugador1Nombre} te está invitando a una partida!</h2>
+                <div>
+                    <h2 className={styles.text}>¡{jugador1Nombre} te está invitando a una partida!</h2>
+                    <button className={styles.botonAceptar} onClick={unirseAPartida}>Aceptar</button>
+                </div>
+
                 <div className={styles.personajes}>
                     {personajes.map((personaje, index) => (
                         <button
@@ -442,7 +431,7 @@ export default function Home() {
                         </button>
                     ))}
                 </div>
-                <button className={styles.botonAceptar} onClick={unirseAPartida}>Aceptar</button>
+
             </PopUp>
 
 
@@ -453,7 +442,3 @@ export default function Home() {
 
     )
 }
-/* <div className={styles.personajes}>
-    {personajes.map((personaje, index) => (
-        <button key={index} onClick={() => setSelectedImg(personaje)} className={styles.botonFoto}><img src={personaje} key={index} className={styles.personaje} /></button>
-    ))}</div>*/

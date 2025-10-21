@@ -266,6 +266,7 @@ io.on("connection", (socket) => {
     console.log("Enviando imagen: ",data.imagen);
 
     io.to(data.room).emit('recibir_imagen', {
+      playerId: data.jugadorId,
       imagen: data.imagen,
     });
   })
