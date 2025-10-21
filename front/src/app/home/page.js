@@ -7,13 +7,16 @@ import { useSearchParams } from "next/navigation";
 import styles from "@/app/home/page.module.css";
 import { useSocket } from "../hooks/useSocket";
 import PopUp from "@/components/PopUp";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
   const searchParams = useSearchParams();
   const usuario = searchParams.get("user");
   const idLogged = searchParams.get("idLogged");
   const { socket, isConnected } = useSocket();
+  const router = useRouter();
   const [usuariosEnLinea, setUsuariosEnLinea] = useState([]);
+
 
   useEffect(() => {
     if (!socket || !isConnected || !idLogged) return;
@@ -52,7 +55,7 @@ export default function Login() {
       socket.emit("leaveRoom", { room: idPartida });
     };
   }
-
+  
   function scores() {}
   function jugadores() {
     for (let i = 0; i < usuariosEnLinea.length; i++) {
@@ -72,6 +75,11 @@ export default function Login() {
           }
         });
     }
+  }
+
+  function irReglas() {
+    let url = "/reglas";
+    router.push(url);
   }
 
 
@@ -103,6 +111,9 @@ export default function Login() {
           </div>
           <div>
             <button className={styles.boton}>Ver puntajes</button>
+          </div>
+          <div>
+            <button className={styles.boton} onClick={irReglas}>Reglas</button>
           </div>
         </div>
       </section>

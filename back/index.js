@@ -196,8 +196,7 @@ app.get('/historialPartidas', async function (req, res) {
 
 let jugadoresEnLinea = []
 
-
-// ============= SOCKET.IO - CORREGIDO =============
+// ============= SOCKET.IO =============
 io.on("connection", (socket) => {
   const req = socket.request;
 
