@@ -262,8 +262,8 @@ io.on("connection", (socket) => {
       idPartida: data.idPartida
     });
   });
-  socket.on('enviar_imagen', async data=> {
-    console.log("Enviando imagen: ",data.imagen);
+  socket.on('enviar_imagen', async data => {
+    console.log("Enviando imagen: ", data.imagen);
 
     io.to(data.room).emit('recibir_imagen', {
       playerId: data.jugadorId,
@@ -271,7 +271,11 @@ io.on("connection", (socket) => {
     });
   })
   // Cuando se envía un mensaje
-
+  socket.on('solicitar_imagenes', data => {
+    console.log("Solicitando imágenes en room:", data.room);
+    // Emitir a todos en el room EXCEPTO al que envió la solicitud
+    socket.to(data.room).emit('reenviar_imagen', { room: data.room });
+  });
   // Opcional: Para salir de una sala
   socket.on('leaveRoom', data => {
     if (data.room) {
