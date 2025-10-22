@@ -245,6 +245,14 @@ io.on("connection", (socket) => {
     io.to(data.room).emit('jugadores_en_linea', { jugadores: jugadoresEnLinea })
 
     console.log("🚪 Entró a sala:", req.session.room);
+    if (data.room !== 0) {
+      console.log("🔥 Solicitando reenvío de imágenes en room:", data.room);
+      socket.to(data.room).emit('reenviar_imagen', { room: data.room });
+    }
+
+    io.to(data.room).emit('jugadores_en_linea', { jugadores: jugadoresEnLinea });
+    console.log("🚪 Entró a sala:", req.session.room);
+    req.session.save();
 
     req.session.save();
   })

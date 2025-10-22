@@ -32,6 +32,12 @@ export default function Home() {
     const [jugador2Id, setJugador2Id] = useState(null);
     const [selectedImg2, setSelectedImg2] = useState(null);
 
+    //
+    const selectedImgRef = useRef(selectedImg);
+    useEffect(() => {
+        selectedImgRef.current = selectedImg;  // ← AGREGAR ESTO
+    }, [selectedImg]);
+
     const personajes = [
         "/imagenes/pablo.jpg",
         "/imagenes/flandua.jpg",
@@ -117,16 +123,23 @@ export default function Home() {
                 setMostrarPopup(true); // ✅ Esto muestra el popup
             }
         });
-        socket.on("reenviar_imagen", data => {
+        /*socket.on("reenviar_imagen", data => {
+            console.log("🔥 REENVIAR_IMAGEN RECIBIDO!");  // ← MÁS VISIBLE
             console.log("Solicitaron que reenvíe mi imagen");
-            if (selectedImg && data.room) {
+            console.log("selectedImg actual:", selectedImgRef.current);  // ← Para debug
+            console.log("room:", data.room);
+
+            if (selectedImgRef.current && data.room) {  // ← USAR EL REF
                 socket.emit("enviar_imagen", {
                     room: data.room,
-                    imagen: selectedImg,
+                    imagen: selectedImgRef.current,  // ← USAR EL REF
                     jugadorId: idLogged
                 });
+                console.log("Imagen reenviada exitosamente");
+            } else {
+                console.log("No se pudo reenviar, selectedImg:", selectedImgRef.current);
             }
-        });
+        });*/
         /*socket.on("recibir_imagen", data => {
             console.log("recibiendo imagen: ", data.imagen, "de jugador:", data.playerId);
 
