@@ -267,11 +267,20 @@ io.on("connection", (socket) => {
       imagen1: data.imagen1
     });
   });
+  socket.on("enviar_partidaId", async data => {
+    console.log("Enviando id: ", data.partidId, " a jugador: ", data.jugador2)
+
+    io.to(0).emit('recibir_idPartida', {
+      partidaId: data.partidaId,
+      jugador2: data.jugador2
+    })
+  })
   socket.on('enviar_imagen', async data => {
     console.log("Enviando imagen: ", data.imagen);
 
-    io.to(data.room).emit('recibir_imagen', {
-      playerId: data.jugadorId,
+    io.to(0).emit('recibir_imagen', {
+      player1Id: data.jugador1Id,
+      player2Id: data.jugador2Id,
       imagen: data.imagen,
     });
   })
