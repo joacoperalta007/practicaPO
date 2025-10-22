@@ -8,7 +8,7 @@ El objetivo es hundir todos los barcos del oponente antes de que él hunda los t
 ## Descripción general
 
 Dos jugadores compiten entre sí en una partida por turnos.  
-Cada uno coloca sus barcos en un tablero y, por turnos, intenta adivinar las coordenadas de los barcos del rival disparando.
+Cada uno coloca sus barcos en un tablero y por turnos, intenta adivinar las coordenadas de los barcos del rival disparando.
 
 El sistema indica si el tiro fue **agua**, **tocado** o **hundido**, y el juego termina cuando uno de los jugadores logra destruir todos los barcos del otro.
 
@@ -18,7 +18,7 @@ El sistema indica si el tiro fue **agua**, **tocado** o **hundido**, y el juego 
 
 ### Inicio del juego
 - Dos jugadores ingresan sus nombres o usuarios.
-- Se crea una nueva partida en la base de datos.
+- Se crea una nueva partida.
 - Cada jugador obtiene su propio tablero.
 
 ### Preparación
@@ -39,8 +39,6 @@ El sistema indica si el tiro fue **agua**, **tocado** o **hundido**, y el juego 
 - Gana el jugador que **hunde todos los barcos** del oponente.
 - El sistema muestra:
   - El **ganador**.
-  - Un **resumen de tiros acertados y fallados**.
-  - Opción para **volver a jugar**.
 
 ---
 
