@@ -153,7 +153,7 @@ export default function Login() {
         <h2>Iniciar sesión</h2>
         <br></br>
         <h3>Ingrese su nombre de usuario: </h3>
-        <Input onChange={guardarUser}></Input>
+        <Input onChange={guardarUser} placeholer={"Introduzca su nombre de usuario"}></Input>
         <br></br>
         <br></br>
         <h3>Ingrese su contraseña: </h3>
@@ -163,7 +163,7 @@ export default function Login() {
         <br></br>
         <h3>¿No tenes cuenta? Registrate ahora!</h3>
         <br></br>
-        <Button onClick={irRegister} text="Ir a registrarse"></Button>
+        <Button onClick={irRegister} text="Registrarse"></Button>
       </div>
       {!mostrar && (
         <div className={styles.contenedor}>
