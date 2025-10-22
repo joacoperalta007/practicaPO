@@ -25,8 +25,8 @@ export default function Reglas() {
             <section className={styles.section}>
                 <h3 className={styles.subtitle}>Preparación del Juego</h3>
                 <p className={styles.text}>
-                    - Cada jugador tiene su propio tablero de 10x10 donde colocará sus barcos.
-                    - Los barcos pueden colocarse en horizontal o vertical, pero no se puede superponer ningún barco.
+                     Cada jugador tiene su propio tablero de 10x10 donde colocará sus barcos.
+                     Los barcos pueden colocarse en horizontal o vertical, pero no se puede superponer ningún barco.
                 </p>
                 <ul className={styles.list}>
                     <li>1 barco de 5 casillas</li>
@@ -43,7 +43,7 @@ export default function Reglas() {
             <section className={styles.section}>
                 <h3 className={styles.subtitle}>Turnos</h3>
                 <p className={styles.text}>
-                    - El juego se juega **por turnos**. Cada jugador, en su turno, selecciona una coordenada en el tablero rival para disparar.
+                    - El juego se juega por turnos. Cada jugador, en su turno, selecciona una coordenada en el tablero rival para disparar.
                     - El sistema verificará si la coordenada seleccionada corresponde a un barco o no.
                 </p>
                 <ul className={styles.list}>

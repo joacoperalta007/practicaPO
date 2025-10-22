@@ -90,7 +90,7 @@ export default function Login() {
     <>
       <section>
         <div className={styles.header}>
-          <h1>¡Bienvenido {usuario} a Batalla naval! </h1>
+          <h1>¡Bienvenido {usuario} a Batalla Esponjosa! </h1>
         </div>
       </section>
       <section className={styles.section1}>
