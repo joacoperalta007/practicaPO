@@ -245,10 +245,7 @@ io.on("connection", (socket) => {
     io.to(data.room).emit('jugadores_en_linea', { jugadores: jugadoresEnLinea })
 
     console.log("🚪 Entró a sala:", req.session.room);
-    if (data.room !== 0) {
-      console.log("🔥 Solicitando reenvío de imágenes en room:", data.room);
-      socket.to(data.room).emit('reenviar_imagen', { room: data.room });
-    }
+    
 
     io.to(data.room).emit('jugadores_en_linea', { jugadores: jugadoresEnLinea });
     console.log("🚪 Entró a sala:", req.session.room);
@@ -267,7 +264,7 @@ io.on("connection", (socket) => {
       player1Id: data.jugador1Id,
       player1Name: data.jugador1Nombre,
       player2Name: data.jugador2Nombre,
-      idPartida: data.idPartida
+      imagen1: data.imagen1
     });
   });
   socket.on('enviar_imagen', async data => {

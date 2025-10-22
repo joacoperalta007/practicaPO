@@ -113,11 +113,14 @@ export default function Home() {
         socket.on('partidaRequest', data => {
             console.log("Petición de partida recibida:", data);
             console.log(`${data.player1} te invitó a jugar. ID Partida: ${data.idPartida}`);
-            setJugador1Nombre(data.player1Name)
-            setJugador1Id(data.player1Id)
-            setJugador2Nombre(data.player2Name)
-            setJugador2Id(data.player2Id)
-            setIdPartida(data.idPartida);
+            if (Number(data.player2) == Number(idLogged)) {
+                setJugador1Nombre(data.player1Name)
+                setJugador1Id(data.player1Id)
+                setJugador2Nombre(data.player2Name)
+                setJugador2Id(data.player2Id)
+                setIdPartida(data.idPartida)
+                setSelectedImg(data.imagen1)
+            }
             // Solo mostrar si soy el jugador invitado
             if (Number(data.player2Id) === Number(idLogged)) {
                 setMostrarPopup(true); // ✅ Esto muestra el popup
@@ -154,14 +157,13 @@ export default function Home() {
                 setSelectedImg2(data.imagen);
             }
         });*/
-        socket.on("recibir_imagen", data => {
-            console.log("recibiendo imagen: ", data.imagen, "de jugador:", data.playerId);
-
+        /*socket.on("recibir_imagen", data => {
+            
             // NO guardar mi propia imagen si ya la tengo
-            if (Number(data.playerId) === Number(idLogged)) {
+            /*if (Number(data.playerId) === Number(idLogged)) {
                 console.log("Es mi propia imagen, ignorando...");
                 return;
-            }
+            }*
 
             // Si recibo una imagen y NO es mía, determinar si es img1 o img2
             if (Number(idLogged) === Number(jugador1IdRef.current)) {
@@ -171,7 +173,13 @@ export default function Home() {
                 setSelectedImg(data.imagen);
                 console.log("Soy jugador 2, guardando imagen del jugador 1");
             }
-        });
+        });*/
+        socket.on("recibir_imagen", data => {
+            if (jugador1Id == idLogged) {
+                console.log("recibiendo imagen: ", data.imagen, "de jugador:", data.playerId);
+                setSelectedImg2(data.imagen)
+            }
+        })
         return () => {
             socket.emit("leaveRoom", { room: 0 });
             socket.off("jugadores_en_linea");
@@ -184,7 +192,47 @@ export default function Home() {
         }
 
     }, [usuariosEnLinea])
+    useEffect(() => {
+        if (idLogged == jugador1Id) {
+            const data = {
+                jugador
+            }
+            try {
+                fetch('http://localhost:4000/crearPartida', {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data)
+                })
+                    .then(response => response.json())
+                    .then(response => {
+                        if (response.res) {
+                            const nuevaPartidaId = response.idPartida
+                            //socket emit un mensaje al otro jugador
+                            setIdPartida(nuevaPartidaId)
+                            if (socket && isConnected) {
+                                //hay quye hacer un evento que redireccione el idPartida al jugador2
+                                // y que en otro useEffect cuando tenga 
+                                // IdPartida tiene que joinRoom a ese id
+                                socket.emit("leaveRoom", { room: 0 });
+                                console.log("Uniéndose a sala:", idPartida, "Usuario:", idLogged);
+                                socket.emit("joinRoom", {
+                                    room: nuevaPartidaId,
+                                    userId: Number(idLogged)
+                                });
+                                console.log("Uniéndose a sala:", idPartida, "Usuario:", idLogged);
+                            }
 
+                        } else {
+                            console.log("Error al crear partida");
+                        }
+                    })
+            } catch {
+                console.log("error")
+            }
+        }
+    }, [selectedImg, selectedImg2, idPartida, jugador1Id, jugador2Id, jugador1Nombre, jugador2Nombre])
     /*useEffect(() => {
         if (selectedImg != undefined && selectedImg2 != undefined) {
             let url = "/partida?idLogged=" + idLogged + "&jugador1Id=" + jugador1Id + "&jugador1Nombre="
@@ -206,8 +254,8 @@ export default function Home() {
         }
     }, [selectedImg, selectedImg2, idPartida, jugador1Id, jugador2Id, jugador1Nombre, jugador2Nombre])
     useEffect(() => {
-        console.log("imagen elegida:", selectedImg);
-        console.log("jugador elegido:", selectedPlayerId);
+        console.log("imagen elegida jugador 1:", selectedImg);
+        console.log("jugador elegido por jugador 1:", selectedPlayerId);
     }, [selectedImg][selectedPlayerId])
 
 
@@ -266,19 +314,28 @@ export default function Home() {
         } catch {
             console.log("error")
         }*/
-    async function crearPartida() {
+    function crearPartida() {
         //let nuevaPartidaId = ""
         if (!socket || !isConnected || !selectedPlayerId || !selectedImg) {
             alert("no seleccionaste nada");
             return;
         }
-
-        const data = {
-            jugador1: idLogged,
-            jugador2: selectedPlayerId,
-        };
-
-        try {
+        if (socket && isConnected) {
+            setJugador1Id(idLogged);
+            setJugador2Id(selectedPlayerId);
+            setJugador1Nombre(usuario)
+            setJugador2Nombre(selectedPlayerName);
+            socket.emit("nuevaPartida", {
+                jugador1Nombre: usuario,
+                jugador2Nombre: selectedPlayerName,
+                jugador1Id: idLogged,
+                jugador2Id: selectedPlayerId,  // ✅ Usar el valor directo
+                imagen1: selectedImg
+            });
+            console.log("Informacion enviada a jugador 2")
+        }
+        //el pedido http hay que ponerlo en un useEffect que ejecute cuando este todo declarado y solo en el idLogged == jugador1Id
+        /*try {
             const response = await fetch('http://localhost:4000/crearPartida', {
                 method: "POST",
                 headers: {
@@ -292,34 +349,12 @@ export default function Home() {
             if (result.res) {
                 const nuevaPartidaId = result.idPartida;
                 setIdPartida(nuevaPartidaId);
-                setJugador1Id(idLogged);
-                setJugador2Id(selectedPlayerId);
-                setJugador1Nombre(usuario)
-                setJugador2Nombre(selectedPlayerName);
                 console.log("Partida creada con ID:", nuevaPartidaId);
-
-                if (socket && isConnected) {
-                    socket.emit("nuevaPartida", {
-                        jugador1Nombre: usuario,
-                        jugador2Nombre: selectedPlayerName,
-                        jugador1Id: idLogged,
-                        jugador2Id: selectedPlayerId,
-                        idPartida: nuevaPartidaId  // ✅ Usar el valor directo
-                    });
-
-                    socket.emit("leaveRoom", { room: 0 });
-                    socket.emit("joinRoom", {
-                        room: nuevaPartidaId,  // ✅ Usar el valor directo
-                        userId: Number(idLogged)
-                    });
-
-                    socket.emit("enviar_imagen", {
-                        room: nuevaPartidaId,
-                        imagen: selectedImg,
-                        jugadorId: idLogged
-                    })
-                    console.log("Unido a sala de partida:", nuevaPartidaId);
-                }
+                socket.emit("leaveRoom", { room: 0 });
+                socket.emit("joinRoom", {
+                    room: nuevaPartidaId,  // ✅ Usar el valor directo
+                    userId: Number(idLogged)
+                });
             } else {
                 console.log("Error al crear partida");
             }
@@ -370,27 +405,25 @@ export default function Home() {
     function unirseAPartida() {
         if (!selectedImg2) {
             alert("Elegí un personaje primero");
-            return;
         }
 
-        console.log("Uniendose a partida: ", idPartida);
+        //console.log("Uniendose a partida: ", idPartida);
 
         // Unirse al room de la partida
-        socket.emit("joinRoom", {
+        /*socket.emit("joinRoom", {
             userId: Number(idLogged),
             room: idPartida
-        });
+        });*/
 
         // Solicitar que el otro jugador reenvíe su imagen
-        socket.emit("solicitar_imagenes", {
+        /*socket.emit("solicitar_imagenes", {
             room: idPartida
-        });
+        });*/
 
         // Enviar mi propia imagen
         socket.emit("enviar_imagen", {
-            room: idPartida,
             imagen: selectedImg2,
-            jugadorId: idLogged
+            jugador2Id: idLogged
         });
     }
     function scores() {
