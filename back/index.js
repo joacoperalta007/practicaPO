@@ -265,6 +265,11 @@ io.on("connection", (socket) => {
     io.to(data.room).emit('jugadores_en_linea', { jugadores: jugadoresEnLinea })
 
     console.log("🚪 Entró a sala:", req.session.room);
+    
+
+    io.to(data.room).emit('jugadores_en_linea', { jugadores: jugadoresEnLinea });
+    console.log("🚪 Entró a sala:", req.session.room);
+    req.session.save();
 
     req.session.save();
   })
@@ -279,18 +284,32 @@ io.on("connection", (socket) => {
       player1Id: data.jugador1Id,
       player1Name: data.jugador1Nombre,
       player2Name: data.jugador2Nombre,
-      idPartida: data.idPartida
+      imagen1: data.imagen1
     });
   });
-  socket.on('enviar_imagen', async data=> {
-    console.log("Enviando imagen: ",data.imagen);
+  socket.on("enviar_partidaId", async data => {
+    console.log("Enviando id: ", data.partidId, " a jugador: ", data.jugador2)
 
-    io.to(data.room).emit('recibir_imagen', {
+    io.to(0).emit('recibir_idPartida', {
+      partidaId: data.partidaId,
+      jugador2: data.jugador2
+    })
+  })
+  socket.on('enviar_imagen', async data => {
+    console.log("Enviando imagen: ", data.imagen);
+
+    io.to(0).emit('recibir_imagen', {
+      player1Id: data.jugador1Id,
+      player2Id: data.jugador2Id,
       imagen: data.imagen,
     });
   })
   // Cuando se envía un mensaje
-
+  socket.on('solicitar_imagenes', data => {
+    console.log("Solicitando imágenes en room:", data.room);
+    // Emitir a todos en el room EXCEPTO al que envió la solicitud
+    socket.to(data.room).emit('reenviar_imagen', { room: data.room });
+  });
   // Opcional: Para salir de una sala
   socket.on('leaveRoom', data => {
     if (data.room) {
