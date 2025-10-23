@@ -8,7 +8,7 @@ import styles from "@/app/home/page.module.css";
 import { useSocket } from "../hooks/useSocket";
 import Image from 'next/image';
 import PopUp from "@/components/PopUp";
-import { useRouter } from "next/navigation";
+
 
 export default function Home() {
 
@@ -56,7 +56,6 @@ export default function Home() {
         "/imagenes/ardilla.jpg",
         "/imagenes/cangrejo.jpg",
         "/imagenes/bichito.jpg"
-
     ]
     
 
