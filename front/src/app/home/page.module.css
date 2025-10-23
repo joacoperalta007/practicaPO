@@ -63,7 +63,8 @@
 
 .crearP {
     text-align: right;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
+    margin-top: 0.5rem;
     
 }
 
@@ -77,7 +78,7 @@
 }
 
 .personaje {
-    height: 4.9rem;
+    height: 4.5rem;
     width: auto;
     border-radius: 3rem;
     border: black 0.1rem solid;
@@ -150,4 +151,8 @@
     background-color: rgba(12, 114, 114, 0.3);
     box-shadow: 0 0 15px rgba(1, 29, 29, 0.6);
     color:rgba(1, 29, 29, 0.6);
+}
+
+.crearPartidaPopup2{
+    margin-left: 5rem;
 }
