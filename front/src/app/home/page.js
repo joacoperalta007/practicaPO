@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState, useEffect, use } from "react";
 import Button from "@/components/Boton";
@@ -8,6 +8,7 @@ import styles from "@/app/home/page.module.css";
 import { useSocket } from "../hooks/useSocket";
 import Image from 'next/image';
 import PopUp from "@/components/PopUp";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
 
