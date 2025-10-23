@@ -13,7 +13,7 @@ var port = process.env.PORT || 4000;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001"],
+  origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003"],
   credentials: true
 }));
 
@@ -25,7 +25,7 @@ const server = app.listen(port, () => {
 
 const io = require('socket.io')(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
   }
@@ -93,7 +93,7 @@ app.post('/register', async function (req, res) {
 app.post('/getUsuarios', async function (req, res) {
   try {
     console.log(req.body)
-    const user = await realizarQuery(`SELECT usuario FROM Jugadores WHERE id_jugador != ${req.body.userId}`);
+    const user = await realizarQuery(`SELECT usuario FROM Jugadores WHERE id_jugador = ${req.body.userId}`);
     res.send({ res: true, usuario: user });
   } catch {
     res.send({ res: false, message: "Error interno del servidor." });
@@ -101,7 +101,7 @@ app.post('/getUsuarios', async function (req, res) {
 })
 
 
-app.post('/crearPartida', async function (req, res) {
+/*app.post('/crearPartida', async function (req, res) {
   try {
     console.log(req.body);
 
@@ -111,10 +111,38 @@ app.post('/crearPartida', async function (req, res) {
 
     await realizarQuery(`INSERT INTO JugadoresPorPartida (id_partida, id_jugador) SELECT ${idPartida}, j.id_jugador FROM Jugadores j WHERE j.id_jugador IN (${req.body.jugador1}, ${req.body.jugador2})`);
 
-    res.send({ res: true, idPartida });
+    res.send({ res: true, idPartida: idPartida });
   } catch (error) {
     console.error("Error en /crearPartida:", error);
     res.send({ res: false, message: "Error creando la partida." });
+  }
+});*/
+app.post('/crearPartida', async function (req, res) {
+  try {
+    console.log("Datos recibidos:", req.body);
+
+    // Insertar la partida y obtener el insertId directamente
+    const resultado = await realizarQuery(`
+      INSERT INTO Partidas (id_ganador, barcos_hundidos_j1, barcos_hundidos_j2)
+      VALUES (NULL, 0, 0)
+    `);
+
+    const idPartida = resultado.insertId;
+
+    console.log("ID partida creada:", idPartida);
+
+    // Insertar jugadores en la partida
+    await realizarQuery(`
+      INSERT INTO JugadoresPorPartida (id_partida, id_jugador)
+      VALUES (${idPartida}, ${req.body.jugador1}), (${idPartida}, ${req.body.jugador2})
+    `);
+
+    console.log("Jugadores agregados a la partida");
+
+    res.send({ res: true, idPartida: idPartida });
+  } catch (error) {
+    console.error("Error en /crearPartida:", error);
+    res.send({ res: false, message: "Error creando la partida: " + error.message });
   }
 });
 
@@ -176,7 +204,7 @@ app.put('/cambiarNombre', async function (req, res) {
   try {
     console.log(req.body)
     await realizarQuery(` UPDATE Jugadores SET nombre = '${req.body.nombre}' WHERE id_jugador = ${req.body.id_jugador}`);
-    res.send({ res: true});
+    res.send({ res: true });
   } catch (error) {
     console.error("Error en /cambiarNombre:", error);
     res.send({ res: false, mensaje: "Error al actualizar el nombre" });
@@ -218,7 +246,7 @@ io.on("connection", (socket) => {
       }
 
       console.log("Salió de sala:", req.session.room);
-      
+
     }
 
     // Guardar la sala y el usuario en la sesión
@@ -240,10 +268,26 @@ io.on("connection", (socket) => {
 
     req.session.save();
   })
-
   //socket.join('global');
   socket.on('nuevaPartida', async data => {
-    console.log("")
+    console.log("jugador emisor: " + data.jugador1);
+    console.log("jugador receptor: " + data.jugador2);
+
+    // Emitir a toda la sala 0 (sala de espera)
+    io.to(0).emit('partidaRequest', {
+      player2Id: data.jugador2Id,
+      player1Id: data.jugador1Id,
+      player1Name: data.jugador1Nombre,
+      player2Name: data.jugador2Nombre,
+      idPartida: data.idPartida
+    });
+  });
+  socket.on('enviar_imagen', async data=> {
+    console.log("Enviando imagen: ",data.imagen);
+
+    io.to(data.room).emit('recibir_imagen', {
+      imagen: data.imagen,
+    });
   })
   // Cuando se envía un mensaje
 
