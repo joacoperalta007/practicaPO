@@ -20,6 +20,13 @@ const coordPortaAviones = [] //aca se pushean las coordeanadas cuandop ubicas tu
 //se comparan entre el length de los barcos y el array de las
 //coordenadas, para saber cuando termine de seleccionar los 
 //casilleros de un barco y asi aparece la imagen en pantalla 
+const BARCOS_INFO = [
+    { nombre: 'destructor1', tamaño: 2, img: '/imagenes/destructorV.png', imgH: '/imagenes/destructorH.png' },
+    { nombre: 'destructor2', tamaño: 2, img: '/imagenes/destructorV.png', imgH: '/imagenes/destructorH.png' },
+    { nombre: 'crucero', tamaño: 3, img: '/imagenes/cruceroV.png', imgH: '/imagenes/cruceroH.png' },
+    { nombre: 'acorazado', tamaño: 4, img: '/imagenes/acorazadoV.png', imgH: '/imagenes/acorazadoH.png' },
+    { nombre: 'portaAviones', tamaño: 5, img: '/imagenes/portaAvionesV.png', imgH: '/imagenes/portaAvionesH.png' }
+];
 
 const matriz = [
     ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10"],
@@ -41,18 +48,18 @@ const barraBarcos = [
     "/imagenes/portaAvionesV.png"
 ]
 
-/*const barcosOrientados = {
-    destructor1V : ,
-    destructor2V: ,
-    cruceroV: , 
-    acorazadoV: ,
-    portaavionesV: ,
-    destructor1H : ,
-    destructor2H: ,
-    cruceroH: , 
-    acorazadoH: ,
-    portaavionesH: 
-}*/ //COMPLETAR CON LAS DIRECCIONES DE LAS IMAGENES DE BARCOS HORIZONTALES Y VERTICALES
+const barcosOrientados = {
+    destructor1V: "/imagenes/destructorV.png",
+    destructor2V: "/imagenes/destructorV.png",
+    cruceroV: "/imagenes/cruceroV.png",
+    acorazadoV: "/imagenes/acorazadoV.png",
+    portaavionesV: "/imagenes/portaAvionesV.png",
+    destructor1H: "/imagenes/destructorH.png",
+    destructor2H: "/imagenes/destructorH.png",
+    cruceroH: "/imagenes/cruceroH.png",
+    acorazadoH: "/imagenes/acorazadoH.png",
+    portaavionesH: "/imagenes/portaAvionesV.png"
+}
 
 export default function pagina() {
     const { socket, isConnected } = useSocket();
@@ -68,14 +75,16 @@ export default function pagina() {
     const [selectedCasilla, setSelectedCasilla] = useState("");
     const [selectedCasillaEnemy, setSelectedCasillaEnemy] = useState("");
     const [orientacion, setOrientacion] = useState("horizontal");
-    const [selectedBarco, setSelectedBarco] = useState(null)
+    const [selectedBarco, setSelectedBarco] = useState(null);
+    const [barcosColocados, setBarcosColocados] = useState([]);
+    const [coordenadasSeleccionadas, setCoordenadasSeleccionadas] = useState([]);
 
     const esJugador1 = Number(idLogged) === Number(id1);
 
     function obtenerCasilla(e) {
         const id = e.target.id;
-        setSelectedCasilla(id)
-        console.log(id); // A1, B2, etc.
+        setCoordenadasSeleccionadas(prev => [...prev, id]); // Agrega nuevas coordenadas al arreglo
+        console.log(coordenadasSeleccionadas); // A1, B2, etc.
         // hacer algo con el id
     }
 
