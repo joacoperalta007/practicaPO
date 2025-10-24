@@ -34,11 +34,11 @@ const matriz = [
     ["J1", "J2", "J3", "J4", "J5", "J6", "J7", "J8", "J9", "J10"]
 ];
 const barraBarcos = [
-    "/imagenes/destructorV",
-    "/imagenes/destructorV",
-    "/imagenes/cruceroV",
-    "/imagenes/acorazadoV",
-    "/imagenes/portaAvionesV"
+    "/imagenes/destructorV.png",
+    "/imagenes/destructorV.png",
+    "/imagenes/cruceroV.png",
+    "/imagenes/acorazadoV.png",
+    "/imagenes/portaAvionesV.png"
 ]
 
 /*const barcosOrientados = {
@@ -224,20 +224,19 @@ export default function pagina() {
                         </div>
                     </div>
                 </div>
-                <div id="barcos">
-
-                    {barraBarcos.map((barco,index) => {
+                <div id="barcos" className={styles.barcosContainer}>
+                    {barraBarcos.map((barco, index) => (
                         <button
+                            className={selectedBarco === index ? styles.botonBarcoSeleccionado : styles.botonBarco}
                             key={index}
-                            onClick={() => setSelectedBarco(barco)}
+                            onClick={() => setSelectedBarco(index)} // Guarda el índice
                         >
                             <img
                                 src={barco}
                                 alt={`barco ${index}`}
                             />
                         </button>
-                    })}
-
+                    ))}
                 </div>
                 {/* Tablero del oponente (derecha) */}
                 <div className={styles.tableroContainer}>
