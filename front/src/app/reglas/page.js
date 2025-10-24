@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation";
-import styles from "@/app/reglas/page.module.css";
+import styles from "./page.module.css";
 
 export default function Reglas() {
 
