@@ -222,6 +222,17 @@ app.get('/historialPartidas', async function (req, res) {
   }
 });
 
+app.get('/traerBarcos', async function (req, res) {
+  try {
+    console.log(req.body)
+    const consulta = await realizarQuery(`SELECT * FROM Barcos`);
+    res.send({ res: true, consulta});
+  } catch (error) {
+    console.error("Error en /traerBarcos:", error);
+    res.send({ res: false, message: "Error para traer los barcos." });
+  }
+});
+
 let jugadoresEnLinea = []
 
 // ============= SOCKET.IO =============

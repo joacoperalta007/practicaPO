@@ -8,7 +8,7 @@ import styles from "@/app/home/page.module.css";
 import { useSocket } from "../hooks/useSocket";
 import Image from 'next/image';
 import PopUp from "@/components/PopUp";
-import { useRouter } from "next/navigation";
+
 
 export default function Home() {
 
@@ -42,13 +42,13 @@ export default function Home() {
     const personajes = [
         "/imagenes/pablo.jpg",
         "/imagenes/flandua.jpg",
-        "/imagenes/benchi.jpg",
         "/imagenes/bergondi.jpg",
         "/imagenes/brendix.jpg",
         "/imagenes/sturla.jpg",
         "/imagenes/santi.jpg",
         "/imagenes/caro.jpg",
         "/imagenes/rivas.jpg",
+        "/imagenes/pez.jpg",
         "/imagenes/estrella.jpg",
         "/imagenes/calamardo.jpg",
         "/imagenes/caracol.jpg",
@@ -503,6 +503,11 @@ export default function Home() {
     //cuando tocas en PC1 el crear partida y elegis un jugador (de 
     // los que estan en linea (rooms)) a PC2
     // le aparece un aviso popup para unirse a la partida)
+
+    function irReglas() {
+        let url = "/reglas";
+        router.push(url);
+    }
     return (
 
         <>
@@ -560,6 +565,9 @@ export default function Home() {
                     </div>
                     <div>
                         <button className={styles.boton}>Ver puntajes</button>
+                    </div>
+                    <div>
+                        <button className={styles.boton} onClick={irReglas}>Ir a reglas</button>
                     </div>
                 </div >
 

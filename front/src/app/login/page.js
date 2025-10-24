@@ -201,14 +201,17 @@ export default function Login() {
         {inicio === 1 ? (
           <div>
             <h1>¡Ingresaste con éxito!</h1>
+            <img src="/imagenes/bobesponja-removebg.png"></img>
           </div>
         ) : inicio === 2 ? (
           <div>
             <h1>El usuario ya existe, vuelve a intentarlo.</h1>
+            <img src="/imagenes/bobtriste-removebg.png"></img>
           </div>
         ) : inicio === 3 ? (
           <div>
             <h1>Usuario o contraseña incorrectos.</h1>
+            <img src="/imagenes/bobtriste-removebg.png"></img>
           </div>
         ) : null}
       </PopUp>
