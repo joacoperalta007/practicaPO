@@ -56,7 +56,6 @@ export default function Home() {
         "/imagenes/ardilla.jpg",
         "/imagenes/cangrejo.jpg",
         "/imagenes/bichito.jpg"
-
     ]
     
 
