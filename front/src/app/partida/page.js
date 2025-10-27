@@ -20,12 +20,12 @@ const coordPortaAviones = [] //aca se pushean las coordeanadas cuandop ubicas tu
 //se comparan entre el length de los barcos y el array de las
 //coordenadas, para saber cuando termine de seleccionar los 
 //casilleros de un barco y asi aparece la imagen en pantalla 
-const BARCOS_INFO = [
-    { nombre: 'destructor1', tamaño: 2, img: '/imagenes/destructorV.png', imgH: '/imagenes/destructorH.png' },
-    { nombre: 'destructor2', tamaño: 2, img: '/imagenes/destructorV.png', imgH: '/imagenes/destructorH.png' },
-    { nombre: 'crucero', tamaño: 3, img: '/imagenes/cruceroV.png', imgH: '/imagenes/cruceroH.png' },
-    { nombre: 'acorazado', tamaño: 4, img: '/imagenes/acorazadoV.png', imgH: '/imagenes/acorazadoH.png' },
-    { nombre: 'portaAviones', tamaño: 5, img: '/imagenes/portaAvionesV.png', imgH: '/imagenes/portaAvionesH.png' }
+const barcosInfo = [
+    { nombre: 'destructor1', largo: 2, img: '/imagenes/destructorV.png', imgH: '/imagenes/destructorH.png', id: 0 },
+    { nombre: 'destructor2', largo: 2, img: '/imagenes/destructorV.png', imgH: '/imagenes/destructorH.png', id: 1 },
+    { nombre: 'crucero', largo: 3, img: '/imagenes/cruceroV.png', imgH: '/imagenes/cruceroH.png', id: 2 },
+    { nombre: 'acorazado', largo: 4, img: '/imagenes/acorazadoV.png', imgH: '/imagenes/acorazadoH.png', id: 3 },
+    { nombre: 'portaAviones', largo: 5, img: '/imagenes/portaAvionesV.png', imgH: '/imagenes/portaAvionesH.png', id: 4 }
 ];
 
 const matriz = [
@@ -48,18 +48,6 @@ const barraBarcos = [
     "/imagenes/portaAvionesV.png"
 ]
 
-const barcosOrientados = {
-    destructor1V: "/imagenes/destructorV.png",
-    destructor2V: "/imagenes/destructorV.png",
-    cruceroV: "/imagenes/cruceroV.png",
-    acorazadoV: "/imagenes/acorazadoV.png",
-    portaavionesV: "/imagenes/portaAvionesV.png",
-    destructor1H: "/imagenes/destructorH.png",
-    destructor2H: "/imagenes/destructorH.png",
-    cruceroH: "/imagenes/cruceroH.png",
-    acorazadoH: "/imagenes/acorazadoH.png",
-    portaavionesH: "/imagenes/portaAvionesV.png"
-}
 
 export default function pagina() {
     const { socket, isConnected } = useSocket();
@@ -76,23 +64,57 @@ export default function pagina() {
     const [selectedCasillaEnemy, setSelectedCasillaEnemy] = useState("");
     const [orientacion, setOrientacion] = useState("horizontal");
     const [selectedBarco, setSelectedBarco] = useState(null);
+    const [selectedBarcoId, setSelectedBarcoId] = useState(null);
     const [barcosColocados, setBarcosColocados] = useState([]);
     const [coordenadasSeleccionadas, setCoordenadasSeleccionadas] = useState([]);
-
+    const [primerCasilla, setPrimerCasilla] = useState(null);
     const esJugador1 = Number(idLogged) === Number(id1);
 
     function obtenerCasilla(e) {
         const id = e.target.id;
+        if(coordenadasSeleccionadas.length == 0){
+            setPrimerCasilla(id)
+        }
         setCoordenadasSeleccionadas(prev => [...prev, id]); // Agrega nuevas coordenadas al arreglo
-        console.log(coordenadasSeleccionadas); // A1, B2, etc.
         // hacer algo con el id
     }
+    useEffect(() => {
+        console.log(coordenadasSeleccionadas); // A1, B2, etc.
+        console.log("primer casilla: ",primerCasilla); // A1, B2, etc.
+        console.log("Barco: ",selectedBarco);
+        if (selectedBarco) {
+            if(coordenadasSeleccionadas.length == selectedBarco.largo){
+               setCoordenadasSeleccionadas([]) 
+               
+               console.log("Casillas vaciada: ", coordenadasSeleccionadas)
+            }
+        }
+    }, [coordenadasSeleccionadas][primerCasilla])
+    useEffect(() => {
+        console.log(selectedBarco); // A1, B2, etc.
 
+    }, [selectedBarco])
+    useEffect(() => {
+        for (let i = 0; i < barcosInfo.length; i++) {
+            if (barcosInfo[i].id == selectedBarcoId) {
+                setSelectedBarco(barcosInfo[i])
+            }
+        }
+
+    }, [selectedBarcoId])
+
+    useEffect(() => {
+        
+    })
     function obtenerCasillaEnemy(e) {
         const id = e.target.id;
         setSelectedCasillaEnemy(id)
         console.log(id, " enemigo"); // A1-enemy, B2-enemy, etc.
         // hacer algo con el id
+    }
+
+    function verSelectedBarco() {
+
     }
     return (
         <>
@@ -234,14 +256,14 @@ export default function pagina() {
                     </div>
                 </div>
                 <div id="barcos" className={styles.barcosContainer}>
-                    {barraBarcos.map((barco, index) => (
+                    {barcosInfo.map((barco, index) => (
                         <button
-                            className={selectedBarco === index ? styles.botonBarcoSeleccionado : styles.botonBarco}
+                            className={selectedBarcoId === index ? styles.botonBarcoSeleccionado : styles.botonBarco}
                             key={index}
-                            onClick={() => setSelectedBarco(index)} // Guarda el índice
+                            onClick={() => setSelectedBarcoId(index)} // Guarda el índice
                         >
                             <img
-                                src={barco}
+                                src={barco.img}
                                 alt={`barco ${index}`}
                             />
                         </button>
@@ -381,6 +403,7 @@ export default function pagina() {
                     </div>
                 </div>
             </section>
+            <button onClick={verSelectedBarco}>ver barco</button>
         </>
     )
 }
