@@ -116,6 +116,9 @@
 .botonBarco:hover {
     opacity: 0.8;
     transform: scale(1.05);
+    box-shadow: rgba(0, 255, 255, 0.6) 0 0 10px;
+    border-radius: 8px;
+
 }
 
 .botonBarco:active {
@@ -150,4 +153,62 @@
     justify-content: center;
     padding: 2rem 1rem; /* Espacio interno */
     min-width: 150px; /* Ancho mínimo del contenedor */
+}
+.casillero {
+    position: relative;
+    overflow: visible; /* Importante para que la imagen se extienda */
+}
+
+.casillero button {
+    width: 100%;
+    height: 100%;
+}
+
+.casillero button:disabled {
+    cursor: not-allowed;
+}
+.casillero button img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+}
+
+.casillero button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.barcoUtilizado {
+    opacity: 0.4;
+    cursor: not-allowed !important;
+    position: relative;
+}
+
+.barcoUtilizado::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    color: rgba(0, 255, 255, 0.6);
+    text-shadow: #00ffff 0 0 5px;
+    font-weight: bold;
+}
+
+.botonConfirmar {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background-color:#0c7272;
+    border: none;
+    border-radius: 0.5rem;
+    color: #000000;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.botonConfirmar:hover {
+    background-color: #00cccc;
+    box-shadow: rgba(0, 255, 255, 0.6) 0 0 10px;
 }

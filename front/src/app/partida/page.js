@@ -5,6 +5,7 @@ import { useSocket } from "../hooks/useSocket";
 import Image from 'next/image';
 import PopUp from "@/components/PopUp";
 import styles from "@/app/partida/page.module.css"
+import Button from "@/components/Boton";
 
 const coordenadasUtilizadas = [] // aca se van pushenado las cordenadas usadas x todoslos barcos de tu tablero
 const destructor1 = 2;
@@ -40,13 +41,7 @@ const matriz = [
     ["I1", "I2", "I3", "I4", "I5", "I6", "I7", "I8", "I9", "I10"],
     ["J1", "J2", "J3", "J4", "J5", "J6", "J7", "J8", "J9", "J10"]
 ];
-const barraBarcos = [
-    "/imagenes/destructorV.png",
-    "/imagenes/destructorV.png",
-    "/imagenes/cruceroV.png",
-    "/imagenes/acorazadoV.png",
-    "/imagenes/portaAvionesV.png"
-]
+
 
 
 export default function pagina() {
@@ -62,7 +57,6 @@ export default function pagina() {
     const idLogged = searchParams.get("idLogged");
     const [selectedCasilla, setSelectedCasilla] = useState("");
     const [selectedCasillaEnemy, setSelectedCasillaEnemy] = useState("");
-    const [orientacion, setOrientacion] = useState("horizontal");
     const [selectedBarco, setSelectedBarco] = useState(null);
     const [selectedBarcoId, setSelectedBarcoId] = useState(null);
     const [barcosColocados, setBarcosColocados] = useState([]);
@@ -72,13 +66,13 @@ export default function pagina() {
 
     function obtenerCasilla(e) {
         const id = e.target.id;
-        if(coordenadasSeleccionadas.length == 0){
+        if (coordenadasSeleccionadas.length == 0) {
             setPrimerCasilla(id)
         }
         setCoordenadasSeleccionadas(prev => [...prev, id]); // Agrega nuevas coordenadas al arreglo
         // hacer algo con el id
     }
-    useEffect(() => {
+    /*useEffect(() => {
         console.log(coordenadasSeleccionadas); // A1, B2, etc.
         console.log("primer casilla: ",primerCasilla); // A1, B2, etc.
         console.log("Barco: ",selectedBarco);
@@ -89,11 +83,159 @@ export default function pagina() {
                console.log("Casillas vaciada: ", coordenadasSeleccionadas)
             }
         }
-    }, [coordenadasSeleccionadas][primerCasilla])
-    useEffect(() => {
-        console.log(selectedBarco); // A1, B2, etc.
+    }, [coordenadasSeleccionadas][primerCasilla])*/
+    function detectarOrientacion(casillas) {
+        if (casillas.length <= 1) return 'horizontal'; // Por defecto
 
-    }, [selectedBarco])
+        const coords = casillas.map(c => ({
+            letra: c.charCodeAt(0),
+            numero: parseInt(c.slice(1))
+        }));
+
+        // Verificar si todas tienen la misma letra (horizontal)
+        const mismaFila = coords.every(c => c.letra === coords[0].letra);
+        if (mismaFila) return 'horizontal';
+
+        // Verificar si todas tienen el mismo número (vertical)
+        const mismaColumna = coords.every(c => c.numero === coords[0].numero);
+        if (mismaColumna) return 'vertical';
+
+        // Si no son ni horizontal ni vertical, retornar null (inválido)
+        return null;
+    }
+    useEffect(() => {
+        console.log(coordenadasSeleccionadas);
+        console.log("primer casilla: ", primerCasilla);
+        console.log("Barco: ", selectedBarco);
+
+        if (selectedBarco && coordenadasSeleccionadas.length === selectedBarco.largo) {
+            // Detectar orientación automáticamente
+            const orientacionDetectada = detectarOrientacion(coordenadasSeleccionadas);
+
+            if (!orientacionDetectada) {
+                alert("Las casillas deben ser contiguas en línea recta (horizontal o vertical)");
+                setCoordenadasSeleccionadas([]);
+                setPrimerCasilla(null);
+                return;
+            }
+
+            // Validar que las casillas sean contiguas
+            const sonContiguas = validarCasillasContiguas(coordenadasSeleccionadas, orientacionDetectada);
+
+            if (!sonContiguas) {
+                alert("Las casillas deben ser consecutivas sin espacios");
+                setCoordenadasSeleccionadas([]);
+                setPrimerCasilla(null);
+                return;
+            }
+            // Encontrar el botón de la primera casilla
+            const primerBoton = document.getElementById(primerCasilla);
+            if (primerBoton) {
+                // Obtener el div contenedor (casillero) del botón
+                const primerCasillero = primerBoton.parentElement;
+
+                // Crear contenedor para la imagen
+                const imgContainer = document.createElement('div');
+                imgContainer.style.position = 'absolute';
+                imgContainer.style.top = '0';
+                imgContainer.style.left = '0';
+                imgContainer.style.zIndex = '10';
+                imgContainer.style.pointerEvents = 'none';
+
+                // Calcular el tamaño según orientación DETECTADA
+                if (orientacionDetectada === 'horizontal') {
+                    imgContainer.style.width = `calc(${selectedBarco.largo} * 100%)`;
+                    imgContainer.style.height = '100%';
+                } else {
+                    imgContainer.style.width = '100%';
+                    imgContainer.style.height = `calc(${selectedBarco.largo} * 100%)`;
+                }
+
+                // Crear y agregar la imagen según orientación DETECTADA
+                const img = document.createElement('img');
+                img.src = orientacionDetectada === 'horizontal' ? selectedBarco.imgH : selectedBarco.img;
+                img.alt = selectedBarco.nombre;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'fill';
+
+
+                imgContainer.appendChild(img);
+
+                // Agregar posición relativa al casillero para que funcione el absolute
+                primerCasillero.style.position = 'relative';
+                primerCasillero.appendChild(imgContainer);
+
+                // Deshabilitar los botones usados y marcarlos visualmente
+                coordenadasSeleccionadas.forEach(coord => {
+                    const btn = document.getElementById(coord);
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.style.backgroundColor = 'rgba(0, 100, 200, 0.2)';
+                    }
+                });
+            }
+
+            // Guardar el barco colocado
+            setBarcosColocados(prev => [...prev, {
+                barco: selectedBarco,
+                coordenadas: [...coordenadasSeleccionadas],
+                primeraCasilla: primerCasilla,
+                orientacion: orientacionDetectada
+            }]);
+            // Resetear para el siguiente barco
+            setCoordenadasSeleccionadas([]);
+            setPrimerCasilla(null);
+            setSelectedBarco(null);
+            setSelectedBarcoId(null);
+
+            console.log("Barco colocado en orientación:", orientacionDetectada);
+        }
+    }, [coordenadasSeleccionadas, selectedBarco, primerCasilla]);
+    /*useEffect(() => {
+        console.log(coordenadasSeleccionadas);
+        console.log("primer casilla: ", primerCasilla);
+        console.log("Barco: ", selectedBarco);
+
+        if (selectedBarco && coordenadasSeleccionadas.length === selectedBarco.largo) {
+            // Encontrar el botón de la primera casilla y cambiar su imagen
+            const primerBoton = document.getElementById(primerCasilla);
+            if (primerBoton) {
+                // Limpiar el botón y agregar la imagen del barco
+                primerBoton.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = orientacion === 'horizontal' ? selectedBarco.imgH : selectedBarco.img;
+                img.alt = selectedBarco.nombre;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                primerBoton.appendChild(img);
+
+                // Deshabilitar los botones usados
+                coordenadasSeleccionadas.forEach(coord => {
+                    const btn = document.getElementById(coord);
+                    if (btn) btn.disabled = true;
+                });
+            }
+
+            // Guardar el barco colocado
+            setBarcosColocados(prev => [...prev, {
+                barco: selectedBarco,
+                coordenadas: [...coordenadasSeleccionadas],
+                primeraCasilla: primerCasilla,
+                orientacion: orientacion
+            }]);
+
+            // Resetear para el siguiente barco
+            setCoordenadasSeleccionadas([]);
+            setPrimerCasilla(null);
+            setSelectedBarco(null);
+            setSelectedBarcoId(null);
+
+            console.log("Barco colocado!");
+        }
+    }, [coordenadasSeleccionadas, selectedBarco, primerCasilla, orientacion]);*/
+
     useEffect(() => {
         for (let i = 0; i < barcosInfo.length; i++) {
             if (barcosInfo[i].id == selectedBarcoId) {
@@ -104,7 +246,7 @@ export default function pagina() {
     }, [selectedBarcoId])
 
     useEffect(() => {
-        
+
     })
     function obtenerCasillaEnemy(e) {
         const id = e.target.id;
@@ -116,6 +258,36 @@ export default function pagina() {
     function verSelectedBarco() {
 
     }
+    function validarCasillasContiguas(casillas, orientacion) {
+        if (casillas.length <= 1) return true;
+
+        // Extraer letra y número de cada casilla
+        const coords = casillas.map(c => ({
+            letra: c.charCodeAt(0),
+            numero: parseInt(c.slice(1))
+        }));
+
+        if (orientacion === 'horizontal') {
+            // Verificar misma fila y números consecutivos
+            const mismaFila = coords.every(c => c.letra === coords[0].letra);
+            const numerosOrdenados = coords.map(c => c.numero).sort((a, b) => a - b);
+            const consecutivos = numerosOrdenados.every((num, i) =>
+                i === 0 || num === numerosOrdenados[i - 1] + 1
+            );
+            return mismaFila && consecutivos;
+        } else {
+            // Verificar misma columna y letras consecutivas
+            const mismaColumna = coords.every(c => c.numero === coords[0].numero);
+            const letrasOrdenadas = coords.map(c => c.letra).sort((a, b) => a - b);
+            const consecutivas = letrasOrdenadas.every((letra, i) =>
+                i === 0 || letra === letrasOrdenadas[i - 1] + 1
+            );
+            return mismaColumna && consecutivas;
+        }
+    }
+    function confirmar() {
+        console.log("Barcos colocados: ", barcosColocados);
+    }
     return (
         <>
             <section className={styles.header}>
@@ -123,15 +295,19 @@ export default function pagina() {
             </section>
             <section className={styles.juego}>
                 {/* Tablero del jugador loggeado (izquierda) */}
+
                 <div className={styles.tableroContainer}>
+
                     <div className={styles.encabezadoTablero}>
                         <img src={esJugador1 ? img1 : img2} className={styles.imgPerfil} alt="Mi avatar" />
                         <div className={styles.nombre}>
                             <h2>{esJugador1 ? nombre1 : nombre2}</h2>
                             <p>Mi tablero</p>
                         </div>
-
                     </div>
+
+
+
                     <div className={styles.tablero}>
                         <div className={styles.fila}>
                             <div className={styles.casillero}><button id="A1" onClick={obtenerCasilla}></button></div>
@@ -256,18 +432,27 @@ export default function pagina() {
                     </div>
                 </div>
                 <div id="barcos" className={styles.barcosContainer}>
-                    {barcosInfo.map((barco, index) => (
-                        <button
-                            className={selectedBarcoId === index ? styles.botonBarcoSeleccionado : styles.botonBarco}
-                            key={index}
-                            onClick={() => setSelectedBarcoId(index)} // Guarda el índice
-                        >
-                            <img
-                                src={barco.img}
-                                alt={`barco ${index}`}
-                            />
-                        </button>
-                    ))}
+                    {barcosInfo.map((barco, index) => {
+                        const barcoYaColocado = barcosColocados.some(b => b.barco.id === index);
+
+                        return (
+                            <button
+                                className={`
+                    ${selectedBarcoId === index ? styles.botonBarcoSeleccionado : styles.botonBarco}
+                    ${barcoYaColocado ? styles.barcoUtilizado : ''}
+                `}
+                                key={index}
+                                onClick={() => !barcoYaColocado && setSelectedBarcoId(index)}
+                                disabled={barcoYaColocado}
+                            >
+                                <img
+                                    src={barco.img}
+                                    alt={`barco ${index}`}
+                                />
+                            </button>
+                        );
+                    })}
+                    <button className={styles.botonConfirmar} onClick={confirmar}>Confirmar</button>
                 </div>
                 {/* Tablero del oponente (derecha) */}
                 <div className={styles.tableroContainer}>
