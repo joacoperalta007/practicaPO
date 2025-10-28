@@ -42,8 +42,6 @@ const matriz = [
     ["J1", "J2", "J3", "J4", "J5", "J6", "J7", "J8", "J9", "J10"]
 ];
 
-
-
 export default function pagina() {
     const { socket, isConnected } = useSocket();
     const searchParams = useSearchParams();
@@ -134,7 +132,6 @@ export default function pagina() {
                 // Obtener el div contenedor (casillero) del botón
                 const primerCasillero = primerBoton.parentElement;
 
-                // Crear contenedor para la imagen
                 const imgContainer = document.createElement('div');
                 imgContainer.style.position = 'absolute';
                 imgContainer.style.top = '0';
@@ -181,7 +178,8 @@ export default function pagina() {
                 barco: selectedBarco,
                 coordenadas: [...coordenadasSeleccionadas],
                 primeraCasilla: primerCasilla,
-                orientacion: orientacionDetectada
+                orientacion: orientacionDetectada,
+                coordenadas: coordenadasSeleccionadas
             }]);
             // Resetear para el siguiente barco
             setCoordenadasSeleccionadas([]);
@@ -285,9 +283,43 @@ export default function pagina() {
             return mismaColumna && consecutivas;
         }
     }
-    function confirmar() {
-        console.log("Barcos colocados: ", barcosColocados);
+    async function confirmar() {
+    console.log("Barcos colocados: ", barcosColocados);
+    
+    if (barcosColocados.length !== 5) {
+        alert("Debes colocar todos los barcos antes de confirmar");
+        return;
     }
+
+    try {
+        for (const barcoColocado of barcosColocados) {
+            const response = await fetch('http://localhost:3000/agregarBarco', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    longitud: barcoColocado.barco.largo,
+                    impactos: 0,
+                    id_partida: idPartida,
+                    id_jugador: idLogged,
+                    coordenadas: barcoColocado.coordenadas
+                })
+            });
+
+            const data = await response.json();
+            
+            console.log(`Barco ${barcoColocado.barco.nombre} agregado con ID: ${data.idBarco}`);
+        }
+
+        alert("Todos los barcos han sido colocados");
+        
+    } catch (error) {
+        console.error("Error al confirmar barcos:", error);
+        alert("Hubo un error al guardar los barcos. Por favor, intenta de nuevo.");
+    }
+}
+
     return (
         <>
             <section className={styles.header}>
