@@ -58,6 +58,7 @@ export default function pagina() {
     const [selectedBarco, setSelectedBarco] = useState(null);
     const [selectedBarcoId, setSelectedBarcoId] = useState(null);
     const [barcosColocados, setBarcosColocados] = useState([]);
+    const [barcosContrincante, setBarcosContrincante] = useState(null);
     const [coordenadasSeleccionadas, setCoordenadasSeleccionadas] = useState([]);
     const [primerCasilla, setPrimerCasilla] = useState(null);
     const esJugador1 = Number(idLogged) === Number(id1);
@@ -101,6 +102,21 @@ export default function pagina() {
         // Si no son ni horizontal ni vertical, retornar null (inválido)
         return null;
     }
+    useEffect(() => {
+        if (!socket || !isConnected || !idLogged) return;
+
+        console.log("Uniéndose a sala:", idPartida, "Usuario:", idLogged);
+        socket.emit("joinRoom", {
+            room: idPartida,
+            userId: Number(idLogged)
+        });
+        socket.on("recibir_barcos", data => {
+            if (data.receptor == Number(idLogged)){
+                console.log("Barcos recibidos de ", data.emisor, ": ", data.barcos);
+                setBarcosContrincante(data.barcos);
+            }
+        });
+    })
     useEffect(() => {
         console.log(coordenadasSeleccionadas);
         console.log("primer casilla: ", primerCasilla);
@@ -306,12 +322,18 @@ export default function pagina() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
             });
-
             alert("Barcos guardados con éxito");
         } catch (error) {
             console.error("Error en /agregarBarco:", error);
             alert("Error al conectar con el servidor");
         }
+        console.log("enviando barcos al contrincante");
+        socket.emit("enviar_barcos", {
+            room: idPartida,
+            jugador2: esJugador1 ? Number(id2) : Number(id1),
+            barcos: barcosColocados,
+            jugador1: Number(idLogged)          
+        });
     }
 
     return (
