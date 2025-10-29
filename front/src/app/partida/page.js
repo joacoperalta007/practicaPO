@@ -254,7 +254,7 @@ export default function pagina() {
     }
 
     function verSelectedBarco() {
-
+        console.log(barcosColocados)
     }
     function validarCasillasContiguas(casillas, orientacion) {
         if (casillas.length <= 1) return true;
