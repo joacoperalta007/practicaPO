@@ -283,42 +283,36 @@ export default function pagina() {
             return mismaColumna && consecutivas;
         }
     }
-    async function confirmar() {
-    console.log("Barcos colocados: ", barcosColocados);
     
-    if (barcosColocados.length !== 5) {
-        alert("Debes colocar todos los barcos antes de confirmar");
-        return;
-    }
-
-    try {
-        for (const barcoColocado of barcosColocados) {
-            const response = await fetch('http://localhost:3000/agregarBarco', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    longitud: barcoColocado.barco.largo,
-                    impactos: 0,
-                    id_partida: idPartida,
-                    id_jugador: idLogged,
-                    coordenadas: barcoColocado.coordenadas
-                })
-            });
-
-            const data = await response.json();
-            
-            console.log(`Barco ${barcoColocado.barco.nombre} agregado con ID: ${data.idBarco}`);
+    async function confirmar() {
+        if (barcosColocados.length != 5) {
+            alert("Poné los 5 barcos primero");
+            return;
         }
 
-        alert("Todos los barcos han sido colocados");
-        
-    } catch (error) {
-        console.error("Error al confirmar barcos:", error);
-        alert("Hubo un error al guardar los barcos. Por favor, intenta de nuevo.");
+        const body = {
+            id_partida: idPartida,
+            id_jugador: idLogged,
+            barcos: barcosColocados.map(barco => ({
+            longitud: barco.barco.largo,
+            impactos: 0,
+            coordenadas: barco.coordenadas
+            }))
+        };
+
+        try {
+            const res = await fetch("http://localhost:4000/agregarBarco", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+            });
+
+            alert("Barcos guardados con éxito");
+        } catch (error) {
+            console.error("Error en /agregarBarco:", error);
+            alert("Error al conectar con el servidor");
+        }
     }
-}
 
     return (
         <>

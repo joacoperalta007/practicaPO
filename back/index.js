@@ -146,23 +146,36 @@ app.post('/crearPartida', async function (req, res) {
   }
 });
 
-app.post('/agregarBarco', async function (req, res) {
+app.post('/agregarBarco', async (req, res) => {
   try {
-    console.log(req.body);
+    console.log("Datos recibidos:", req.body);
 
-    await realizarQuery(`INSERT INTO Barcos (longitud, impactos, id_partida, id_jugador) VALUES ('${req.body.longitud}', '${req.body.impactos}', '${req.body.id_partida}', '${req.body.id_jugador}')`);
+    const id_partida = req.body.id_partida;
+    const id_jugador = req.body.id_jugador;
+    const barcos = req.body.barcos;
 
-    const idBarco = (await realizarQuery(`SELECT LAST_INSERT_ID() AS idBarco`))[0].idBarco;
+    for (const barco of barcos) {
+      const resultadoBarco = await realizarQuery(`
+        INSERT INTO Barcos (longitud, impactos, id_partida, id_jugador)
+        VALUES ('${barco.longitud}', '${barco.impactos}', '${id_partida}', '${id_jugador}')
+      `);
 
-    for (let i = 0; i < req.body.coordenadas.length; i++) {
-      const arrayCords = req.body.coordenadas[i];
-      await realizarQuery(`INSERT INTO Coordenadas (id_partida, id_barco, coordenada_barco, impacto) VALUES ('${req.body.id_partida}', ${idBarco}, '${arrayCords}', false)`);
+      const idBarco = resultadoBarco.insertId;
+      console.log("idBarco creado:", idBarco);
+
+      for (const coord of barco.coordenadas) {
+        await realizarQuery(`
+          INSERT INTO Coordenadas (id_partida, id_barco, coordenada_barco, impacto)
+          VALUES ('${id_partida}', ${idBarco}, '${coord}', false)
+        `);
+      }
     }
 
-    res.send({ res: true, idBarco });
+    res.send({ res: true, message: "Barcos agregados con éxito" });
+
   } catch (error) {
     console.error("Error en /agregarBarco:", error);
-    res.send({ res: false, message: "Error al agregar el barco." });
+    res.send({ res: false, message: "Error al agregar barcos" });
   }
 });
 
