@@ -315,6 +315,8 @@ io.on("connection", (socket) => {
       imagen: data.imagen,
     });
   })
+
+  
   // Cuando se envía un mensaje
   socket.on('solicitar_imagenes', data => {
     console.log("Solicitando imágenes en room:", data.room);
