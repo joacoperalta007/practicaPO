@@ -1,4 +1,4 @@
-'use client'
+'use client' 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSocket } from "../hooks/useSocket";
@@ -60,6 +60,7 @@ export default function pagina() {
     const [barcosColocados, setBarcosColocados] = useState([]);
     const [coordenadasSeleccionadas, setCoordenadasSeleccionadas] = useState([]);
     const [primerCasilla, setPrimerCasilla] = useState(null);
+    const [confirmado, setConfirmado] = useState(false); 
     const esJugador1 = Number(idLogged) === Number(id1);
 
     function obtenerCasilla(e) {
@@ -70,7 +71,7 @@ export default function pagina() {
         setCoordenadasSeleccionadas(prev => [...prev, id]); // Agrega nuevas coordenadas al arreglo
         // hacer algo con el id
     }
-    
+
     function detectarOrientacion(casillas) {
         if (casillas.length <= 1) return 'horizontal'; // Por defecto
 
@@ -90,6 +91,7 @@ export default function pagina() {
         // Si no son ni horizontal ni vertical, retornar null (inválido)
         return null;
     }
+
     useEffect(() => {
         console.log(coordenadasSeleccionadas);
         console.log("primer casilla: ", primerCasilla);
@@ -145,7 +147,6 @@ export default function pagina() {
                 img.style.height = '100%';
                 img.style.objectFit = 'fill';
 
-
                 imgContainer.appendChild(img);
 
                 // Agregar posición relativa al casillero para que funcione el absolute
@@ -179,7 +180,7 @@ export default function pagina() {
             console.log("Barco colocado en orientación:", orientacionDetectada);
         }
     }, [coordenadasSeleccionadas, selectedBarco, primerCasilla]);
-    
+
     useEffect(() => {
         for (let i = 0; i < barcosInfo.length; i++) {
             if (barcosInfo[i].id == selectedBarcoId) {
@@ -189,9 +190,6 @@ export default function pagina() {
 
     }, [selectedBarcoId])
 
-    useEffect(() => {
-
-    })
     function obtenerCasillaEnemy(e) {
         const id = e.target.id;
         setSelectedCasillaEnemy(id)
@@ -200,7 +198,7 @@ export default function pagina() {
     }
 
     function verSelectedBarco() {
-        console.log(barcosColocados)
+
     }
     function validarCasillasContiguas(casillas, orientacion) {
         if (casillas.length <= 1) return true;
@@ -240,19 +238,19 @@ export default function pagina() {
             id_partida: idPartida,
             id_jugador: idLogged,
             barcos: barcosColocados.map(barco => ({
-            longitud: barco.barco.largo,
-            impactos: 0,
-            coordenadas: barco.coordenadas
+                longitud: barco.barco.largo,
+                impactos: 0,
+                coordenadas: barco.coordenadas
             }))
         };
 
         try {
             const res = await fetch("http://localhost:4000/agregarBarco", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
             });
-
+            setConfirmado(true);
             alert("Barcos guardados con éxito");
         } catch (error) {
             console.error("Error en /agregarBarco:", error);
@@ -260,10 +258,21 @@ export default function pagina() {
         }
     }
 
+    let mensajeHeader = "Ubicá tus barcos, seleccionando un barco y luego las casillas"; 
+    if (barcosColocados.length == 5 && !confirmado) {
+        mensajeHeader = "No te olvides de apretar Confirmar";
+    }
+    if (confirmado) {
+        mensajeHeader = "¡A jugar!";
+    }
+
     return (
         <>
             <section className={styles.header}>
-                <h1>Numero de partida:  {idPartida}</h1>
+                <h1>
+                    Numero de partida:  {idPartida} - {mensajeHeader}
+                </h1>
+                <br></br>
             </section>
             <section className={styles.juego}>
                 {/* Tablero del jugador loggeado (izquierda) */}
@@ -277,8 +286,6 @@ export default function pagina() {
                             <p>Mi tablero</p>
                         </div>
                     </div>
-
-
 
                     <div className={styles.tablero}>
                         <div className={styles.fila}>

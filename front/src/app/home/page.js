@@ -337,7 +337,6 @@ export default function Home() {
 
                             </div>
 
-
                         </PopUp>
                     </div>
                     <div>
@@ -379,11 +378,6 @@ export default function Home() {
                 </div>
 
             </PopUp>
-
-
-
-
-
         </>
 
     )
