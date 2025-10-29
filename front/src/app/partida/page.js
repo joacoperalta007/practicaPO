@@ -58,9 +58,12 @@ export default function pagina() {
     const [selectedBarco, setSelectedBarco] = useState(null);
     const [selectedBarcoId, setSelectedBarcoId] = useState(null);
     const [barcosColocados, setBarcosColocados] = useState([]);
+    const [barcosContrincante, setBarcosContrincante] = useState(null);
     const [coordenadasSeleccionadas, setCoordenadasSeleccionadas] = useState([]);
     const [primerCasilla, setPrimerCasilla] = useState(null);
     const esJugador1 = Number(idLogged) === Number(id1);
+    const [miTurno, setMiTurno] = useState(id1);
+    const primerTurno = Number(idLogged) === Number(id1);
 
     function obtenerCasilla(e) {
         const id = e.target.id;
@@ -101,6 +104,54 @@ export default function pagina() {
         // Si no son ni horizontal ni vertical, retornar null (inválido)
         return null;
     }
+    useEffect(() => {
+        
+    })
+    useEffect(() => {
+        if (!socket || !isConnected || !idLogged) return;
+
+        console.log("Uniéndose a sala:", idPartida, "Usuario:", idLogged);
+        socket.emit("joinRoom", {
+            room: idPartida,
+            userId: Number(idLogged)
+        });
+        socket.on("recibir_barcos", data => {
+            if (data.emisor != idLogged) {
+                console.log("Barcos recibidos de ", data.emisor, ": ", data.barcos);
+                setBarcosContrincante(data.barcos);
+            }
+        });
+        socket.on("aceptar_turno", data => {
+            console.log("ñañañañañañañañ")
+            if (data.receptor == Number(idLogged)) {
+                setMiTurno(data.receptor)
+                console.log("Es mi turno")
+            }
+        })
+
+    })
+    useEffect(() => {
+        if (!socket || !isConnected || !idLogged) return;
+        //cambiar de turno cada vez que hace disparo 
+        if (idLogged == id2) {
+            socket.emit("cambiar_turno", {
+                receptor: id1,
+                emisor: idLogged,
+                room: idPartida
+            })
+            console.log("Ya no es mi turno, es de: ", id1)
+            setMiTurno(id1)
+        } else if (idLogged == id1) {
+            socket.emit("cambiar_turno", {
+                receptor: id2,
+                emisor: idLogged,
+                room: idPartida
+            })
+            console.log("Ya no es mi turno, es de: ", id2)
+            setMiTurno(id2)
+        }
+
+    }, [selectedCasillaEnemy])
     useEffect(() => {
         console.log(coordenadasSeleccionadas);
         console.log("primer casilla: ", primerCasilla);
@@ -190,49 +241,7 @@ export default function pagina() {
             console.log("Barco colocado en orientación:", orientacionDetectada);
         }
     }, [coordenadasSeleccionadas, selectedBarco, primerCasilla]);
-    /*useEffect(() => {
-        console.log(coordenadasSeleccionadas);
-        console.log("primer casilla: ", primerCasilla);
-        console.log("Barco: ", selectedBarco);
 
-        if (selectedBarco && coordenadasSeleccionadas.length === selectedBarco.largo) {
-            // Encontrar el botón de la primera casilla y cambiar su imagen
-            const primerBoton = document.getElementById(primerCasilla);
-            if (primerBoton) {
-                // Limpiar el botón y agregar la imagen del barco
-                primerBoton.innerHTML = '';
-                const img = document.createElement('img');
-                img.src = orientacion === 'horizontal' ? selectedBarco.imgH : selectedBarco.img;
-                img.alt = selectedBarco.nombre;
-                img.style.width = '100%';
-                img.style.height = '100%';
-                img.style.objectFit = 'cover';
-                primerBoton.appendChild(img);
-
-                // Deshabilitar los botones usados
-                coordenadasSeleccionadas.forEach(coord => {
-                    const btn = document.getElementById(coord);
-                    if (btn) btn.disabled = true;
-                });
-            }
-
-            // Guardar el barco colocado
-            setBarcosColocados(prev => [...prev, {
-                barco: selectedBarco,
-                coordenadas: [...coordenadasSeleccionadas],
-                primeraCasilla: primerCasilla,
-                orientacion: orientacion
-            }]);
-
-            // Resetear para el siguiente barco
-            setCoordenadasSeleccionadas([]);
-            setPrimerCasilla(null);
-            setSelectedBarco(null);
-            setSelectedBarcoId(null);
-
-            console.log("Barco colocado!");
-        }
-    }, [coordenadasSeleccionadas, selectedBarco, primerCasilla, orientacion]);*/
 
     useEffect(() => {
         for (let i = 0; i < barcosInfo.length; i++) {
@@ -247,9 +256,12 @@ export default function pagina() {
 
     })
     function obtenerCasillaEnemy(e) {
-        const id = e.target.id;
-        setSelectedCasillaEnemy(id)
-        console.log(id, " enemigo"); // A1-enemy, B2-enemy, etc.
+        if (miTurno == idLogged) {
+            const id = e.target.id;
+            setSelectedCasillaEnemy(id)
+            console.log(id, " enemigo"); // A1-enemy, B2-enemy, etc.
+        }
+
         // hacer algo con el id
     }
 
@@ -283,7 +295,7 @@ export default function pagina() {
             return mismaColumna && consecutivas;
         }
     }
-    
+
     async function confirmar() {
         if (barcosColocados.length != 5) {
             alert("Poné los 5 barcos primero");
@@ -294,24 +306,30 @@ export default function pagina() {
             id_partida: idPartida,
             id_jugador: idLogged,
             barcos: barcosColocados.map(barco => ({
-            longitud: barco.barco.largo,
-            impactos: 0,
-            coordenadas: barco.coordenadas
+                longitud: barco.barco.largo,
+                impactos: 0,
+                coordenadas: barco.coordenadas
             }))
         };
 
         try {
             const res = await fetch("http://localhost:4000/agregarBarco", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
             });
-
             alert("Barcos guardados con éxito");
         } catch (error) {
             console.error("Error en /agregarBarco:", error);
             alert("Error al conectar con el servidor");
         }
+        console.log("enviando barcos al contrincante");
+        socket.emit("enviar_barcos", {
+            room: idPartida,
+            jugador2: esJugador1 ? Number(id2) : Number(id1),
+            barcos: barcosColocados,
+            jugador1: Number(idLogged)
+        });
     }
 
     return (
@@ -321,7 +339,6 @@ export default function pagina() {
             </section>
             <section className={styles.juego}>
                 {/* Tablero del jugador loggeado (izquierda) */}
-
                 <div className={styles.tableroContainer}>
 
                     <div className={styles.encabezadoTablero}>
@@ -614,7 +631,7 @@ export default function pagina() {
                     </div>
                 </div>
             </section>
-            <button onClick={verSelectedBarco}>ver barco</button>
+
         </>
     )
 }
