@@ -105,6 +105,9 @@ export default function pagina() {
         return null;
     }
     useEffect(() => {
+        
+    })
+    useEffect(() => {
         if (!socket || !isConnected || !idLogged) return;
 
         console.log("Uniéndose a sala:", idPartida, "Usuario:", idLogged);
@@ -137,6 +140,7 @@ export default function pagina() {
                 room: idPartida
             })
             console.log("Ya no es mi turno, es de: ", id1)
+            setMiTurno(id1)
         } else if (idLogged == id1) {
             socket.emit("cambiar_turno", {
                 receptor: id2,
@@ -144,6 +148,7 @@ export default function pagina() {
                 room: idPartida
             })
             console.log("Ya no es mi turno, es de: ", id2)
+            setMiTurno(id2)
         }
 
     }, [selectedCasillaEnemy])
