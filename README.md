@@ -33,7 +33,7 @@ El sistema indica si el tiro fue **agua**, **tocado** o **hundido**, y el juego 
   - Si hay barco → **impacto**.
   - Si no hay barco → **agua**.
 - Cuando se impacta una coordenada:
-  - `Vuelve a jugar hasta a fallar`
+  - Vuelve a jugar hasta a fallar
 
 ### Fin del juego
 - Gana el jugador que **hunde todos los barcos** del oponente.
