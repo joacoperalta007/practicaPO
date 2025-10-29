@@ -70,18 +70,7 @@ export default function pagina() {
         setCoordenadasSeleccionadas(prev => [...prev, id]); // Agrega nuevas coordenadas al arreglo
         // hacer algo con el id
     }
-    /*useEffect(() => {
-        console.log(coordenadasSeleccionadas); // A1, B2, etc.
-        console.log("primer casilla: ",primerCasilla); // A1, B2, etc.
-        console.log("Barco: ",selectedBarco);
-        if (selectedBarco) {
-            if(coordenadasSeleccionadas.length == selectedBarco.largo){
-               setCoordenadasSeleccionadas([]) 
-               
-               console.log("Casillas vaciada: ", coordenadasSeleccionadas)
-            }
-        }
-    }, [coordenadasSeleccionadas][primerCasilla])*/
+    
     function detectarOrientacion(casillas) {
         if (casillas.length <= 1) return 'horizontal'; // Por defecto
 
@@ -190,50 +179,7 @@ export default function pagina() {
             console.log("Barco colocado en orientación:", orientacionDetectada);
         }
     }, [coordenadasSeleccionadas, selectedBarco, primerCasilla]);
-    /*useEffect(() => {
-        console.log(coordenadasSeleccionadas);
-        console.log("primer casilla: ", primerCasilla);
-        console.log("Barco: ", selectedBarco);
-
-        if (selectedBarco && coordenadasSeleccionadas.length === selectedBarco.largo) {
-            // Encontrar el botón de la primera casilla y cambiar su imagen
-            const primerBoton = document.getElementById(primerCasilla);
-            if (primerBoton) {
-                // Limpiar el botón y agregar la imagen del barco
-                primerBoton.innerHTML = '';
-                const img = document.createElement('img');
-                img.src = orientacion === 'horizontal' ? selectedBarco.imgH : selectedBarco.img;
-                img.alt = selectedBarco.nombre;
-                img.style.width = '100%';
-                img.style.height = '100%';
-                img.style.objectFit = 'cover';
-                primerBoton.appendChild(img);
-
-                // Deshabilitar los botones usados
-                coordenadasSeleccionadas.forEach(coord => {
-                    const btn = document.getElementById(coord);
-                    if (btn) btn.disabled = true;
-                });
-            }
-
-            // Guardar el barco colocado
-            setBarcosColocados(prev => [...prev, {
-                barco: selectedBarco,
-                coordenadas: [...coordenadasSeleccionadas],
-                primeraCasilla: primerCasilla,
-                orientacion: orientacion
-            }]);
-
-            // Resetear para el siguiente barco
-            setCoordenadasSeleccionadas([]);
-            setPrimerCasilla(null);
-            setSelectedBarco(null);
-            setSelectedBarcoId(null);
-
-            console.log("Barco colocado!");
-        }
-    }, [coordenadasSeleccionadas, selectedBarco, primerCasilla, orientacion]);*/
-
+    
     useEffect(() => {
         for (let i = 0; i < barcosInfo.length; i++) {
             if (barcosInfo[i].id == selectedBarcoId) {
