@@ -69,7 +69,7 @@ app.post('/login', async function login(req, res) {
     console.error("Error en /login:", error);
     res.send({ res: false, message: "Error interno del servidor." });
   }
-});
+}); //funciona
 
 
 app.post('/register', async function (req, res) {

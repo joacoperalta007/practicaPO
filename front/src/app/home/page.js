@@ -59,7 +59,7 @@ export default function Home() {
 
     useEffect(() => {
         console.log("jugador1 id: " , jugador1Id)    
-    }, [jugador1Id]);
+    }, [jugador1Id]); 
 
     
     useEffect(() => {
