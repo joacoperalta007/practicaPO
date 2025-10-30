@@ -5,9 +5,9 @@ import Button from "@/components/Boton";
 import Input from "@/components/Input";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "@/app/home/page.module.css";
-import { useSocket } from "../hooks/useSocket";
-import Image from 'next/image';
-import PopUp from "@/components/PopUp";
+// import { useSocket } from "../hooks/useSocket";
+// import Image from 'next/image';
+// import PopUp from "@/components/PopUp";
 
 
 export default function Home() {
