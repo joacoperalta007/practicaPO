@@ -14,9 +14,9 @@
     color: white;
     text-align: center;
     text-decoration: none;
-    display: inline-block;
+    /* display: inline-block;
     cursor: pointer;
-    border-radius: 1.5rem;
+    border-radius: 1.5rem; */
 }
 
 .contenedor{
